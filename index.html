@@ -98,7 +98,7 @@ header{background:var(--header-bg);border-bottom:2px solid var(--border);padding
 .category-card:hover::before{opacity:1;}
 .category-card:hover{transform:translateY(-5px);box-shadow:0 10px 28px var(--shadow);border-color:var(--accent2);}
 .category-card.active{border-color:var(--accent);background:var(--primary-light);}
-.cat-icon{width:100%;height:160px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:3.5rem;overflow:hidden;border-radius:16px 16px 0 0;flex-shrink:0;}
+.cat-icon{width:100%;height:160px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:3.5rem;overflow:hidden;border-radius:16px 16px 0 0;flex-shrink:0;transition:.2s;}
 .cat-icon img{width:100%;height:100%;object-fit:cover;display:block;}
 .cat-label{padding:.8rem .6rem .9rem;position:relative;z-index:2;}
 .cat-name{font-weight:700;color:var(--text);font-size:.95rem;}
@@ -642,6 +642,7 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
           <div class="form-group"><label>Preço (R$)</label><input type="number" id="prodPreco" step="0.01"/></div>
           <div class="form-group"><label>🏷️ Preço Promocional (opcional)</label><input type="number" id="prodPrecoPromo" step="0.01" placeholder="Deixe vazio se não houver promoção"/></div>
           <div class="form-group"><label>Estoque</label><input type="number" id="prodQtd" min="0"/></div>
+          <div class="form-group"><label>🔢 Código do Produto (SKU)</label><input type="text" id="prodSku" placeholder="Ex: FBL-001, LEGGING-P-PRETO"/></div>
           <div class="form-group"><label>Categoria</label><select id="prodCategoria"></select></div>
         </div>
         <div class="form-group">
@@ -853,7 +854,7 @@ async function dbLoad(){
     const {data:ca}=await db.from('categorias').select('*').order('criado_em');
     if(ca)S.cats=ca.map(c=>({id:c.id,nome:c.nome,emoji:c.emoji,img:c.img,size:c.img_size||80}));
     const {data:pr}=await db.from('produtos').select('*').order('criado_em');
-    if(pr)S.prods=pr.map(p=>({id:p.id,nome:p.nome,preco:p.preco,precoPromo:p.preco_promo||null,tamanhos:p.tamanhos||[],cores:p.cores||[],frete:p.frete||'',catId:p.cat_id,desc:p.descricao||'',imgs:p.imgs||(p.img?[p.img]:[])}));
+    if(pr)S.prods=pr.map(p=>({id:p.id,nome:p.nome,preco:p.preco,precoPromo:p.preco_promo||null,tamanhos:p.tamanhos||[],cores:p.cores||[],frete:p.frete||'',sku:p.sku||'',catId:p.cat_id,desc:p.descricao||'',imgs:p.imgs||(p.img?[p.img]:[])}));
     const {data:dep}=await db.from('depoimentos').select('*').order('ordem');
     if(dep)S.deps=dep.map(d=>({id:d.id,nome:d.nome,insta:d.insta||'',comentario:d.comentario,stars:d.stars||5,img:d.img||null,ordem:d.ordem||0}));
     else S.deps=[];
@@ -946,28 +947,28 @@ async function saveProduct(){
   const catId=g('prodCategoria');const editId=g('prodEditId');
   const imgs=prodImgs.filter(Boolean);
   if(!imgs.length){toast('⚠️ Adicione pelo menos 1 foto!');return;}
-  const descricao=g('prodDesc');const frete=g('prodFrete');const tamanhos=selectedSizes;const cores=selectedColors;
+  const descricao=g('prodDesc');const frete=g('prodFrete');const sku=g('prodSku')||'';const tamanhos=selectedSizes;const cores=selectedColors;
   el('saveProdBtn').disabled=true;el('saveProdBtn').textContent='⏳ Salvando...';
   if(editId){
-    const upd={nome,preco:parseFloat(preco),preco_promo:precoPromo,tamanhos,cores,frete,qtd:parseInt(g('prodQtd'))||0,cat_id:catId,imgs,descricao};
+    const upd={nome,preco:parseFloat(preco),preco_promo:precoPromo,tamanhos,cores,frete,sku,qtd:parseInt(g('prodQtd'))||0,cat_id:catId,imgs,descricao};
     const {error}=await db.from('produtos').update(upd).eq('id',editId);
     if(error){toast('❌ '+error.message);el('saveProdBtn').disabled=false;el('saveProdBtn').textContent='💾 Salvar Produto';return;}
-    const p=S.prods.find(x=>x.id===editId);Object.assign(p,{nome,preco:parseFloat(preco),precoPromo,tamanhos,cores,frete,qtd:parseInt(g('prodQtd'))||0,catId,imgs,desc:descricao});
+    const p=S.prods.find(x=>x.id===editId);Object.assign(p,{nome,preco:parseFloat(preco),precoPromo,tamanhos,cores,frete,sku,qtd:parseInt(g('prodQtd'))||0,catId,imgs,desc:descricao});
     el('prodEditId').value='';el('prodFormTitle').textContent='Novo Produto';toast('✅ Produto atualizado!');
   }else{
     const id=uid();
-    const {error}=await db.from('produtos').insert({id,nome,preco:parseFloat(preco),preco_promo:precoPromo,tamanhos,cores,frete,qtd:parseInt(g('prodQtd'))||0,cat_id:catId,imgs,descricao});
+    const {error}=await db.from('produtos').insert({id,nome,preco:parseFloat(preco),preco_promo:precoPromo,tamanhos,cores,frete,sku,qtd:parseInt(g('prodQtd'))||0,cat_id:catId,imgs,descricao});
     if(error){toast('❌ '+error.message);el('saveProdBtn').disabled=false;el('saveProdBtn').textContent='💾 Salvar Produto';return;}
-    S.prods.push({id,nome,preco:parseFloat(preco),precoPromo,tamanhos,cores,frete,qtd:parseInt(g('prodQtd'))||0,catId,imgs,desc:descricao});
+    S.prods.push({id,nome,preco:parseFloat(preco),precoPromo,tamanhos,cores,frete,sku,qtd:parseInt(g('prodQtd'))||0,catId,imgs,desc:descricao});
     toast('✅ Produto adicionado!');
   }
   el('saveProdBtn').disabled=false;el('saveProdBtn').textContent='💾 Salvar Produto';
   renderProds('all');renderProdList();renderCategories();resetProdForm();
 }
 async function delProd(id){if(!confirm('Remover produto?'))return;await db.from('produtos').delete().eq('id',id);S.prods=S.prods.filter(p=>p.id!==id);renderProds('all');renderProdList();renderCategories();toast('🗑️ Removido!');}
-function editProd(id){const p=S.prods.find(x=>x.id===id);el('prodNome').value=p.nome;el('prodPreco').value=p.preco;el('prodPrecoPromo').value=p.precoPromo||'';el('prodQtd').value=p.qtd||0;el('prodCategoria').value=p.catId;el('prodEditId').value=id;el('prodDesc').value=p.desc||'';el('prodFrete').value=p.frete||'';el('prodFormTitle').textContent='Editar Produto';fillSlots(p.imgs||[]);fillSizeBtns(p.tamanhos||[]);fillColorSwatches(p.cores||[]);showTab('tabProdutos',document.querySelectorAll('.admin-tab')[3]);toast('✏️ Editando...');}
-function renderProdList(){const e=el('productsList');if(!S.prods.length){e.innerHTML='<div class="empty-state"><i class="fas fa-box-open"></i>Nenhum produto.</div>';return;}e.innerHTML=S.prods.map(p=>{const cat=S.cats.find(c=>c.id===p.catId);const thumb=p.imgs&&p.imgs[0]?p.imgs[0]:null;const precoStr=p.precoPromo?`<span style="text-decoration:line-through;color:var(--text-light)">R$ ${parseFloat(p.preco).toFixed(2)}</span> → <span style="color:#e53e3e;font-weight:700">R$ ${parseFloat(p.precoPromo).toFixed(2)}</span>`:`R$ ${parseFloat(p.preco).toFixed(2)}`;return `<div class="list-item"><div class="list-item-info">${thumb?`<img src="${thumb}" style="width:44px;height:44px;object-fit:cover;border-radius:8px"/>`:'<i class="fas fa-dumbbell" style="font-size:1.5rem;color:var(--border)"></i>'}<div><div style="font-weight:600">${p.nome}${p.precoPromo?'<span style="background:#e53e3e;color:#fff;font-size:.65rem;padding:.1rem .4rem;border-radius:50px;margin-left:.4rem">PROMO</span>':''}</div><div style="font-size:.8rem;color:var(--text-light)">${precoStr} · ${cat?cat.nome:'—'} · ${(p.imgs||[]).length} foto(s)</div></div></div><div class="list-item-actions"><button class="btn-edit" onclick="editProd('${p.id}')"><i class="fas fa-pen"></i></button><button class="btn-danger" onclick="delProd('${p.id}')"><i class="fas fa-trash"></i></button></div></div>`;}).join('');}
-function resetProdForm(){resetSlots();selectedSizes=[];selectedColors=[];customColors=[];['prodNome','prodPreco','prodPrecoPromo','prodQtd','prodEditId','prodDesc','prodFrete'].forEach(i=>el(i).value='');initSizeBtns();initColorSwatches();renderCustomColorsList();}
+function editProd(id){const p=S.prods.find(x=>x.id===id);el('prodNome').value=p.nome;el('prodPreco').value=p.preco;el('prodPrecoPromo').value=p.precoPromo||'';el('prodQtd').value=p.qtd||0;el('prodSku').value=p.sku||'';el('prodCategoria').value=p.catId;el('prodEditId').value=id;el('prodDesc').value=p.desc||'';el('prodFrete').value=p.frete||'';el('prodFormTitle').textContent='Editar Produto';fillSlots(p.imgs||[]);fillSizeBtns(p.tamanhos||[]);fillColorSwatches(p.cores||[]);showTab('tabProdutos',document.querySelectorAll('.admin-tab')[3]);toast('✏️ Editando...');}
+function renderProdList(){const e=el('productsList');if(!S.prods.length){e.innerHTML='<div class="empty-state"><i class="fas fa-box-open"></i>Nenhum produto.</div>';return;}e.innerHTML=S.prods.map(p=>{const cat=S.cats.find(c=>c.id===p.catId);const thumb=p.imgs&&p.imgs[0]?p.imgs[0]:null;const precoStr=p.precoPromo?`<span style="text-decoration:line-through;color:var(--text-light)">R$ ${parseFloat(p.preco).toFixed(2)}</span> → <span style="color:#e53e3e;font-weight:700">R$ ${parseFloat(p.precoPromo).toFixed(2)}</span>`:`R$ ${parseFloat(p.preco).toFixed(2)}`;return `<div class="list-item"><div class="list-item-info">${thumb?`<img src="${thumb}" style="width:44px;height:44px;object-fit:cover;border-radius:8px"/>`:'<i class="fas fa-dumbbell" style="font-size:1.5rem;color:var(--border)"></i>'}<div><div style="font-weight:600">${p.nome}${p.precoPromo?'<span style="background:#e53e3e;color:#fff;font-size:.65rem;padding:.1rem .4rem;border-radius:50px;margin-left:.4rem">PROMO</span>':''}</div><div style="font-size:.8rem;color:var(--text-light)">${precoStr} · ${cat?cat.nome:'—'} · ${(p.imgs||[]).length} foto(s)${p.sku?' · <span style="background:var(--primary-light);color:var(--accent);font-size:.7rem;padding:.1rem .4rem;border-radius:6px;font-weight:700">#'+p.sku+'</span>':''}</div></div></div><div class="list-item-actions"><button class="btn-edit" onclick="editProd('${p.id}')"><i class="fas fa-pen"></i></button><button class="btn-danger" onclick="delProd('${p.id}')"><i class="fas fa-trash"></i></button></div></div>`;}).join('');}
+function resetProdForm(){resetSlots();selectedSizes=[];selectedColors=[];customColors=[];['prodNome','prodPreco','prodPrecoPromo','prodQtd','prodEditId','prodDesc','prodFrete','prodSku'].forEach(i=>el(i).value='');initSizeBtns();initColorSwatches();renderCustomColorsList();}
 function populateCatSel(){const s=el('prodCategoria');s.innerHTML=S.cats.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');}
 
 function openProdModal(pid){
@@ -976,7 +977,8 @@ function openProdModal(pid){
   const wa1=(S.loja.whats||'').replace(/\D/g,'');
   const wa2=(S.loja.whats2||'').replace(/\D/g,'');
   const precoFinal=p.precoPromo?parseFloat(p.precoPromo):parseFloat(p.preco);
-  const msg=encodeURIComponent(`Olá! Tenho interesse no produto: ${p.nome} - R$ ${precoFinal.toFixed(2)}`);
+  const skuTxt=p.sku?`\nCódigo: ${p.sku}`:'';
+  const msg=encodeURIComponent(`Olá! 👋 Tenho interesse em um produto da *Fitness BemEstar Life*!\n\n🛍️ *${p.nome}*${skuTxt}\n💰 Valor: *R$ ${precoFinal.toFixed(2)}*\n\nPoderia me dar mais informações? 😊`);
   modalImgs=p.imgs&&p.imgs.length?p.imgs:[];modalCur=0;
   el('modalCat').innerHTML=`<i class="fas fa-tag"></i> ${cat?cat.nome:'Produto'}`;
   el('modalName').textContent=p.nome;
@@ -990,6 +992,7 @@ function openProdModal(pid){
   if(p.tamanhos&&p.tamanhos.length)meta+=`<div style="width:100%"><span class="modal-section-label">📏 Tamanhos</span><div class="size-pills">${p.tamanhos.map(t=>`<div class="size-pill avail">${t}</div>`).join('')}</div></div>`;
   if(p.cores&&p.cores.length)meta+=`<div style="width:100%"><span class="modal-section-label">🎨 Cores</span><div class="color-dots">${p.cores.map(c=>`<div style="background:${c.hex};width:26px;height:26px;border-radius:50%;border:2px solid rgba(0,0,0,.12);display:inline-block;margin:.15rem" title="${c.nome}"></div>`).join('')}</div></div>`;
   meta+=`<span class="modal-meta-tag">📦 ${p.qtd} unidade(s)</span>`;
+  if(p.sku)meta+=`<span class="modal-meta-tag" style="background:#fff8e1;color:#b8860b;border:1px solid #f0d060">🔢 Cód: ${p.sku}</span>`;
   el('modalMeta').innerHTML=meta;
   const freteEl=document.getElementById('modalFrete');
   if(freteEl)freteEl.innerHTML=p.frete?`<div class="frete-badge" style="margin-top:.3rem"><i class="fas fa-truck"></i>${p.frete}</div>`:'';
@@ -1078,7 +1081,11 @@ function renderCategories(){
       </div>
     </div>`).join('')+`
     <div class="category-card" onclick="filterCat('all','Todos os Produtos',this)">
-      <div class="cat-icon"><span>🌟</span></div>
+      <div class="cat-icon" style="background:var(--accent)">
+        <div style="background:var(--accent);width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(46,125,50,.35)">
+          <i class="fas fa-border-all" style="font-size:2rem;color:#fff"></i>
+        </div>
+      </div>
       <div class="cat-label">
         <div class="cat-name">Todos</div>
         <div class="cat-count">${S.prods.length} produto(s)</div>
@@ -1093,7 +1100,9 @@ function renderProds(catId){
   grid.innerHTML=prods.map(p=>{
     const thumb=p.imgs&&p.imgs[0]?p.imgs[0]:null;
     const count=p.imgs&&p.imgs.length>1?`<span class="prod-img-count"><i class="fas fa-images"></i> ${p.imgs.length}</span>`:'';
-    const msg=encodeURIComponent(`Olá! Tenho interesse no produto: ${p.nome} - R$ ${p.precoPromo?parseFloat(p.precoPromo).toFixed(2):parseFloat(p.preco).toFixed(2)}`);
+    const precoCard=p.precoPromo?parseFloat(p.precoPromo):parseFloat(p.preco);
+    const skuCard=p.sku?`\nCódigo: ${p.sku}`:'';
+    const msg=encodeURIComponent(`Olá! 👋 Tenho interesse em um produto da *Fitness BemEstar Life*!\n\n🛍️ *${p.nome}*${skuCard}\n💰 Valor: *R$ ${precoCard.toFixed(2)}*\n\nPoderia me dar mais informações? 😊`);
     const waLink=wa?`https://wa.me/${wa}?text=${msg}`:'#';
     const precoHtml=p.precoPromo
       ?`<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap"><span class="product-price-old">R$ ${parseFloat(p.preco).toFixed(2)}</span><span class="product-price-promo">R$ ${parseFloat(p.precoPromo).toFixed(2)}</span><span class="promo-badge">PROMOÇÃO</span></div>`
@@ -1106,6 +1115,7 @@ function renderProds(catId){
       <div class="prod-thumb">${thumb?`<img src="${thumb}" alt="${p.nome}"/>`:`<div class="no-img"><i class="fas fa-dumbbell"></i></div>`}${count}${promoBadge}</div>
       <div class="product-info">
         <div class="product-name">${p.nome}</div>
+        ${p.sku?`<div style="font-size:.68rem;color:var(--text-light);margin-bottom:.2rem;font-weight:600">Cód: ${p.sku}</div>`:''}
         ${precoHtml}${coresHtml}${tamHtml}${freteHtml}
         <a class="btn-whatsapp-sm" href="${waLink}" target="_blank" onclick="event.stopPropagation()"><i class="fab fa-whatsapp"></i> Tenho interesse</a>
       </div></div>`;
