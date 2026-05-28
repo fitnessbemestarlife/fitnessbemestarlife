@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Fitness Bem Estar Life</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,800;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,700;0,800;1,400&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -39,9 +39,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--primary-ultra);color:var(
 /* ── HEADER ── */
 header{background:var(--header-bg);border-bottom:2px solid var(--border);padding:0 2rem;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
 .header-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:.9rem 0;}
-.logo{font-family:'Barlow Condensed',sans-serif;font-size:1.9rem;font-weight:800;color:var(--accent);text-decoration:none;letter-spacing:2px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:.5rem;}
-.logo .logo-icon{background:var(--accent);color:#fff;width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
-.logo span{color:var(--accent2);}
+.logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.7rem;font-weight:600;color:var(--accent);text-decoration:none;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:.6rem;line-height:1;}
+.logo .logo-icon{font-size:1.6rem;line-height:1;display:flex;align-items:center;}
+.logo .logo-main{display:flex;flex-direction:column;line-height:1.1;}
+.logo .logo-top{font-size:.85rem;font-weight:400;letter-spacing:4px;text-transform:uppercase;color:var(--text-light);font-family:'DM Sans',sans-serif;}
+.logo .logo-bottom{font-size:1.6rem;font-weight:600;color:var(--accent);letter-spacing:.5px;}
+.logo .logo-bottom em{font-style:italic;color:var(--primary-dark);}
+
 .header-actions{display:flex;gap:.8rem;align-items:center;}
 .social-btn{display:flex;align-items:center;gap:.4rem;padding:.5rem 1.1rem;border-radius:50px;text-decoration:none;font-size:.84rem;font-weight:700;transition:all .2s;letter-spacing:.3px;}
 .btn-insta{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;}
@@ -202,7 +206,9 @@ header{background:var(--header-bg);border-bottom:2px solid var(--border);padding
 /* ── FOOTER ── */
 footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:0;}
 .footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:2rem;}
-.footer-brand .logo-footer{font-family:'Barlow Condensed',sans-serif;font-size:1.7rem;font-weight:800;color:var(--accent2);letter-spacing:2px;text-transform:uppercase;}
+.footer-brand .logo-footer{font-family:'Cormorant Garamond',Georgia,serif;font-size:1.7rem;font-weight:600;color:var(--accent2);letter-spacing:.5px;}
+.footer-brand .logo-footer small{display:block;font-family:'DM Sans',sans-serif;font-size:.75rem;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.4);font-weight:400;margin-bottom:.1rem;}
+.footer-brand .logo-footer em{font-style:italic;color:#a8d5a2;}
 .footer-brand p{color:rgba(255,255,255,.55);margin-top:.5rem;font-size:.9rem;}
 .footer-links h4,.footer-social h4{color:var(--accent2);margin-bottom:1rem;font-size:.85rem;text-transform:uppercase;letter-spacing:1.5px;}
 .footer-links a{display:block;color:rgba(255,255,255,.65);text-decoration:none;margin-bottom:.4rem;font-size:.9rem;transition:.2s;}
@@ -325,8 +331,11 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
 <header>
   <div class="header-inner">
     <a class="logo" onclick="scrollToTop()">
-      <div class="logo-icon"><i class="fas fa-dumbbell"></i></div>
-      <span id="logoName">Fitness BemEstar Life</span>
+      <div class="logo-icon">🌿</div>
+      <div class="logo-main">
+        <span class="logo-top">Fitness</span>
+        <span class="logo-bottom" id="logoName">Bem Estar <em>Life</em></span>
+      </div>
     </a>
     <div class="header-actions">
       <a class="social-btn btn-insta" id="headerInsta" href="#" target="_blank"><i class="fab fa-instagram"></i><span>Instagram</span></a>
@@ -338,10 +347,10 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
 <!-- HERO -->
 <section class="hero">
   <div class="hero-content">
-    <div class="hero-eyebrow"><i class="fas fa-leaf"></i> Saúde · Fitness · Bem-Estar</div>
+    <div class="hero-eyebrow" id="heroEyebrow"><i class="fas fa-leaf"></i> Saúde · Fitness · Bem-Estar</div>
     <h1 id="heroTitle">Sua <span>Evolução</span><br>Começa Aqui</h1>
     <p id="heroDesc">Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.</p>
-    <div class="hero-deco">
+    <div class="hero-deco" id="heroBadgesWrap">
       <span class="hero-badge"><i class="fas fa-tshirt"></i> Roupas Fitness</span>
       <span class="hero-badge"><i class="fas fa-capsules"></i> Suplementos</span>
       <span class="hero-badge"><i class="fas fa-dumbbell"></i> Equipamentos</span>
@@ -352,12 +361,7 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
 
 <!-- STATS -->
 <div class="stats-banner">
-  <div class="stats-inner">
-    <div class="stat-item"><div class="stat-num">500+</div><div class="stat-label">Clientes Ativos</div></div>
-    <div class="stat-item"><div class="stat-num">100+</div><div class="stat-label">Produtos</div></div>
-    <div class="stat-item"><div class="stat-num">5★</div><div class="stat-label">Avaliação</div></div>
-    <div class="stat-item"><div class="stat-num">2x</div><div class="stat-label">Entrega Expressa</div></div>
-  </div>
+  <div class="stats-inner" id="statsGrid"></div>
 </div>
 
 <!-- CARROSSEL -->
@@ -386,36 +390,15 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
 </section>
 
 <!-- DIFERENCIAIS -->
-<section class="diferenciais-section">
-  <h2 class="section-title">💪 Por que nos <span>Escolher</span>?</h2>
-  <div class="diferenciais-grid">
-    <div class="dif-card">
-      <div class="dif-icon"><i class="fas fa-medal"></i></div>
-      <div class="dif-title">Qualidade Premium</div>
-      <div class="dif-desc">Produtos selecionados com alto padrão de qualidade para o seu desempenho.</div>
-    </div>
-    <div class="dif-card">
-      <div class="dif-icon"><i class="fas fa-shipping-fast"></i></div>
-      <div class="dif-title">Entrega Rápida</div>
-      <div class="dif-desc">Enviamos para todo o Brasil com agilidade e segurança.</div>
-    </div>
-    <div class="dif-card">
-      <div class="dif-icon"><i class="fab fa-whatsapp"></i></div>
-      <div class="dif-title">Atendimento VIP</div>
-      <div class="dif-desc">Suporte personalizado pelo WhatsApp. Tire todas as suas dúvidas!</div>
-    </div>
-    <div class="dif-card">
-      <div class="dif-icon"><i class="fas fa-leaf"></i></div>
-      <div class="dif-title">Estilo de Vida Saudável</div>
-      <div class="dif-desc">Tudo que você precisa para viver com saúde, disposição e bem-estar.</div>
-    </div>
-  </div>
+<section class="diferenciais-section" id="difSection">
+  <h2 class="section-title" id="difTitulo">💪 Por que nos <span>Escolher</span>?</h2>
+  <div class="diferenciais-grid" id="difGrid"></div>
 </section>
 
 <!-- DEPOIMENTOS -->
 <section class="dep-section" id="depSection">
-  <h2 class="section-title">⭐ Quem já treinou <span>com a gente</span></h2>
-  <p class="dep-subtitle">Veja a transformação dos nossos clientes</p>
+  <h2 class="section-title" id="depTitulo">⭐ Quem já treinou <span>com a gente</span></h2>
+  <p class="dep-subtitle" id="depSubtitulo">Veja a transformação dos nossos clientes</p>
   <div class="dep-carousel-wrap">
     <div class="dep-track" id="depTrack"></div>
     <button class="dep-nav-btn dep-prev" onclick="depPrev()"><i class="fas fa-chevron-left"></i></button>
@@ -428,7 +411,7 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
 <footer>
   <div class="footer-inner">
     <div class="footer-brand">
-      <div class="logo-footer" id="footerLogoName">Fitness BemEstar Life</div>
+      <div class="logo-footer" id="footerLogoName">🌿 <small>Fitness</small>Bem Estar <em>Life</em></div>
       <p id="footerDesc">Saúde, fitness e bem-estar para a sua melhor versão.</p>
     </div>
     <div class="footer-links">
@@ -572,6 +555,7 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
     <button class="admin-tab" onclick="showTab('tabCategorias',this)">🗂️ Categorias</button>
     <button class="admin-tab" onclick="showTab('tabProdutos',this)">💪 Produtos</button>
     <button class="admin-tab" onclick="showTab('tabDepoimentos',this)">⭐ Depoimentos</button>
+    <button class="admin-tab" onclick="showTab('tabTextos',this)">✏️ Textos</button>
     <button class="admin-tab" onclick="showTab('tabConfigs',this)">🎨 Aparência</button>
     <button class="admin-tab" onclick="showTab('tabSeguranca',this)">🔑 Segurança</button>
   </div>
@@ -720,6 +704,42 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
       <div class="admin-card"><h3>Depoimentos Cadastrados</h3><div id="depList"></div></div>
     </div>
 
+    <!-- TEXTOS -->
+    <div class="admin-section" id="tabTextos">
+      <!-- HERO -->
+      <div class="admin-card">
+        <h3>🦸 Seção Hero (topo)</h3>
+        <div class="form-group"><label>Texto pequeno acima do título (eyebrow)</label><input type="text" id="cfgEyebrow" placeholder="Saúde · Fitness · Bem-Estar"/></div>
+        <div class="form-group"><label>Título principal</label><input type="text" id="cfgHeroTitle2"/></div>
+        <div class="form-group"><label>Descrição</label><textarea id="cfgHeroDesc" rows="2"></textarea></div>
+        <div class="form-group"><label>Badges (separe por vírgula)</label><input type="text" id="cfgHeroBadges" placeholder="🏋️ Roupas Fitness, 💊 Suplementos, 🚚 Entrega Rápida"/></div>
+        <button class="btn-primary" onclick="saveTextos()">💾 Salvar Hero</button>
+      </div>
+      <!-- STATS -->
+      <div class="admin-card">
+        <h3>📊 Números / Estatísticas</h3>
+        <p style="font-size:.82rem;color:var(--text-light);margin-bottom:1rem">Formato: Número|Rótulo (um por linha). Ex: 500+|Clientes Ativos</p>
+        <div class="form-group"><label>Stats (um por linha, máx 4)</label><textarea id="cfgStats" rows="4" placeholder="500+|Clientes Ativos&#10;100+|Produtos&#10;5★|Avaliação&#10;2x|Entrega Expressa"></textarea></div>
+        <button class="btn-primary" onclick="saveTextos()">💾 Salvar Stats</button>
+      </div>
+      <!-- DIFERENCIAIS -->
+      <div class="admin-card">
+        <h3>💪 Seção "Por que nos Escolher?"</h3>
+        <div class="form-group"><label>Título da seção</label><input type="text" id="cfgDifTitulo" placeholder="💪 Por que nos Escolher?"/></div>
+        <p style="font-size:.82rem;color:var(--text-light);margin-bottom:.5rem">Cada card abaixo:</p>
+        <div id="difCardsAdmin"></div>
+        <button class="btn-secondary" style="margin-bottom:1rem" onclick="addDifCard()">➕ Adicionar Card</button><br>
+        <button class="btn-primary" onclick="saveTextos()">💾 Salvar Diferenciais</button>
+      </div>
+      <!-- DEPOIMENTOS TITULO -->
+      <div class="admin-card">
+        <h3>⭐ Seção Depoimentos</h3>
+        <div class="form-group"><label>Título da seção</label><input type="text" id="cfgDepTitulo" placeholder="⭐ Quem já treinou com a gente"/></div>
+        <div class="form-group"><label>Subtítulo</label><input type="text" id="cfgDepSub" placeholder="Veja a transformação dos nossos clientes"/></div>
+        <button class="btn-primary" onclick="saveTextos()">💾 Salvar</button>
+      </div>
+    </div>
+
     <!-- APARÊNCIA -->
     <div class="admin-section" id="tabConfigs">
       <div class="admin-card">
@@ -742,11 +762,7 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
         </div>
         <button class="btn-primary" onclick="saveTheme()" style="margin-top:1rem">💾 Salvar Tema</button>
       </div>
-      <div class="admin-card">
-        <h3>Título Principal</h3>
-        <div class="form-group"><input type="text" id="cfgHeroTitle"/></div>
-        <button class="btn-primary" onclick="saveHeroTitle()">💾 Salvar</button>
-      </div>
+
     </div>
 
     <!-- SEGURANÇA -->
@@ -774,6 +790,7 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 const db=supabase.createClient(SURL,SKEY);
 
 let S={
+  textos:{},
   loja:{nome:'Fitness BemEstar Life',whats:'',whatsLabel:'WhatsApp',whats2:'',whats2Label:'',insta:'',slogan:'',desc:'',footerDesc:'',heroTitle:'Sua Evolução Começa Aqui',theme:'verde'},
   creds:{user:'admin',pass:'1234'},
   slides:[],cats:[],prods:[],deps:[]
@@ -815,6 +832,7 @@ async function dbLoad(){
         footerDesc:cfg.footer_desc||'',heroTitle:cfg.hero_title||'Sua Evolução Começa Aqui',theme:cfg.theme||'verde'
       };
       if(cfg.credentials)S.creds=cfg.credentials;
+    if(cfg.textos)S.textos=cfg.textos||{};
     }
     const {data:sl}=await db.from('slides').select('*').order('ordem');
     if(sl)S.slides=sl.map(s=>({id:s.id,caption:s.caption,img:s.img,ordem:s.ordem||0}));
@@ -832,7 +850,7 @@ async function dbSaveCfg(x={}){
   const r={id:'main',nome:S.loja.nome,whats:S.loja.whats,whats_label:S.loja.whatsLabel,
     whats2:S.loja.whats2,whats2_label:S.loja.whats2Label,
     insta:S.loja.insta,slogan:S.loja.slogan,desc_loja:S.loja.desc,footer_desc:S.loja.footerDesc,
-    hero_title:S.loja.heroTitle,theme:S.loja.theme,credentials:S.creds,...x};
+    hero_title:S.loja.heroTitle,theme:S.loja.theme,credentials:S.creds,textos:S.textos,...x};
   const {error}=await db.from('loja_config').upsert(r);return error;
 }
 async function saveLojaConfig(){
@@ -1083,7 +1101,7 @@ function openAdmin(){
   el('cfgWhats2').value=S.loja.whats2||'';el('cfgWhats2Label').value=S.loja.whats2Label||'';
   el('cfgInsta').value=S.loja.insta;el('cfgSlogan').value=S.loja.slogan;
   el('cfgDesc').value=S.loja.desc;el('cfgFooterDesc').value=S.loja.footerDesc;el('cfgHeroTitle').value=S.loja.heroTitle||'';
-  renderSlidesList();renderCatList();renderProdList();renderDepList();populateCatSel();
+  renderSlidesList();renderCatList();renderProdList();renderDepList();populateCatSel();fillTextosAdmin();
 }
 function exitAdmin(){el('adminPanel').classList.remove('open');applyLoja();renderCategories();renderProds('all');}
 function showTab(id,btn){document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));el(id).classList.add('active');if(btn)btn.classList.add('active');}
@@ -1145,6 +1163,123 @@ function depNext(){depCur++;_depMove();}
 function depPrev(){depCur--;_depMove();}
 
 // ── INIT ──
+
+// ══════════════════════
+//  TEXTOS EDITÁVEIS
+// ══════════════════════
+const DIF_PADRAO=[
+  {icone:'fas fa-medal',titulo:'Qualidade Premium',desc:'Produtos selecionados com alto padrão de qualidade para o seu desempenho.'},
+  {icone:'fas fa-shipping-fast',titulo:'Entrega Rápida',desc:'Enviamos para todo o Brasil com agilidade e segurança.'},
+  {icone:'fab fa-whatsapp',titulo:'Atendimento VIP',desc:'Suporte personalizado pelo WhatsApp. Tire todas as suas dúvidas!'},
+  {icone:'fas fa-leaf',titulo:'Estilo de Vida Saudável',desc:'Tudo que você precisa para viver com saúde, disposição e bem-estar.'}
+];
+const STATS_PADRAO=[{num:'500+',label:'Clientes Ativos'},{num:'100+',label:'Produtos'},{num:'5★',label:'Avaliação'},{num:'2x',label:'Entrega Expressa'}];
+
+function renderDiferenciais(){
+  const difs=S.textos&&S.textos.difs&&S.textos.difs.length?S.textos.difs:DIF_PADRAO;
+  const grid=el('difGrid');if(!grid)return;
+  grid.innerHTML=difs.map(d=>`
+    <div class="dif-card">
+      <div class="dif-icon"><i class="${d.icone}"></i></div>
+      <div class="dif-title">${d.titulo}</div>
+      <div class="dif-desc">${d.desc}</div>
+    </div>`).join('');
+  const tit=el('difTitulo');
+  if(tit&&S.textos&&S.textos.difTitulo)tit.innerHTML=S.textos.difTitulo;
+}
+
+function renderStats(){
+  const stats=S.textos&&S.textos.stats&&S.textos.stats.length?S.textos.stats:STATS_PADRAO;
+  const grid=el('statsGrid');if(!grid)return;
+  grid.innerHTML=stats.map(s=>`<div class="stat-item"><div class="stat-num">${s.num}</div><div class="stat-label">${s.label}</div></div>`).join('');
+}
+
+function renderHeroExtras(){
+  if(!S.textos)return;
+  if(S.textos.eyebrow){const e=el('heroEyebrow');if(e)e.innerHTML='<i class="fas fa-leaf"></i> '+S.textos.eyebrow;}
+  if(S.textos.badges&&S.textos.badges.length){
+    const w=el('heroBadgesWrap');
+    if(w)w.innerHTML=S.textos.badges.map(b=>`<span class="hero-badge">${b}</span>`).join('');
+  }
+  if(S.textos.depTitulo){const e=el('depTitulo');if(e)e.innerHTML=S.textos.depTitulo;}
+  if(S.textos.depSub){const e=el('depSubtitulo');if(e)e.textContent=S.textos.depSub;}
+}
+
+function renderDifCardsAdmin(){
+  const difs=S.textos&&S.textos.difs&&S.textos.difs.length?[...S.textos.difs]:[...DIF_PADRAO];
+  const wrap=el('difCardsAdmin');if(!wrap)return;
+  wrap.innerHTML=difs.map((d,i)=>`
+    <div style="border:1.5px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:.8rem;background:var(--primary-ultra)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+        <span style="font-weight:700;font-size:.9rem">Card ${i+1}</span>
+        <button class="btn-danger" onclick="removeDifCard(${i})"><i class="fas fa-trash"></i></button>
+      </div>
+      <div class="admin-grid">
+        <div class="form-group"><label>Ícone (classe Font Awesome)</label><input type="text" id="dif_icone_${i}" value="${d.icone}" placeholder="fas fa-medal"/></div>
+        <div class="form-group"><label>Título</label><input type="text" id="dif_titulo_${i}" value="${d.titulo}"/></div>
+      </div>
+      <div class="form-group"><label>Descrição</label><textarea id="dif_desc_${i}" rows="2">${d.desc}</textarea></div>
+    </div>`).join('');
+  window._difCount=difs.length;
+}
+
+function addDifCard(){
+  if(!S.textos)S.textos={};
+  if(!S.textos.difs)S.textos.difs=[...DIF_PADRAO];
+  S.textos.difs.push({icone:'fas fa-star',titulo:'Novo Diferencial',desc:'Descrição aqui.'});
+  renderDifCardsAdmin();
+}
+function removeDifCard(i){
+  if(!S.textos||!S.textos.difs)S.textos={difs:[...DIF_PADRAO]};
+  S.textos.difs.splice(i,1);
+  renderDifCardsAdmin();
+}
+
+function collectDifCards(){
+  const count=window._difCount||0;
+  const arr=[];
+  for(let i=0;i<count;i++){
+    const ic=el('dif_icone_'+i);const ti=el('dif_titulo_'+i);const de=el('dif_desc_'+i);
+    if(ic&&ti&&de)arr.push({icone:ic.value.trim(),titulo:ti.value.trim(),desc:de.value.trim()});
+  }
+  return arr;
+}
+
+async function saveTextos(){
+  if(!S.textos)S.textos={};
+  const eyebrow=g('cfgEyebrow');if(eyebrow)S.textos.eyebrow=eyebrow;
+  const heroDesc=g('cfgHeroDesc');if(heroDesc){S.loja.desc=heroDesc;}
+  const heroTitle=g('cfgHeroTitle2');if(heroTitle)S.loja.heroTitle=heroTitle;
+  const badgesRaw=g('cfgHeroBadges');
+  if(badgesRaw)S.textos.badges=badgesRaw.split(',').map(b=>b.trim()).filter(Boolean);
+  const statsRaw=el('cfgStats').value.trim();
+  if(statsRaw){
+    S.textos.stats=statsRaw.split('\n').map(l=>{const p=l.split('|');return{num:(p[0]||'').trim(),label:(p[1]||'').trim()};}).filter(s=>s.num&&s.label);
+  }
+  const difTit=g('cfgDifTitulo');if(difTit)S.textos.difTitulo=difTit;
+  const difs=collectDifCards();if(difs.length)S.textos.difs=difs;
+  const depTit=g('cfgDepTitulo');if(depTit)S.textos.depTitulo=depTit;
+  const depSub=g('cfgDepSub');if(depSub)S.textos.depSub=depSub;
+  const err=await dbSaveCfg({textos:S.textos});
+  if(err){toast('❌ '+err.message);return;}
+  applyLoja();renderDiferenciais();renderStats();renderHeroExtras();
+  toast('✅ Textos salvos!');
+}
+
+function fillTextosAdmin(){
+  const t=S.textos||{};
+  if(el('cfgEyebrow'))el('cfgEyebrow').value=t.eyebrow||'Saúde · Fitness · Bem-Estar';
+  if(el('cfgHeroTitle2'))el('cfgHeroTitle2').value=S.loja.heroTitle||'';
+  if(el('cfgHeroDesc'))el('cfgHeroDesc').value=S.loja.desc||'';
+  if(el('cfgHeroBadges'))el('cfgHeroBadges').value=(t.badges||[]).join(', ');
+  const stats=t.stats&&t.stats.length?t.stats:STATS_PADRAO;
+  if(el('cfgStats'))el('cfgStats').value=stats.map(s=>s.num+'|'+s.label).join('\n');
+  if(el('cfgDifTitulo'))el('cfgDifTitulo').value=t.difTitulo||'💪 Por que nos Escolher?';
+  if(el('cfgDepTitulo'))el('cfgDepTitulo').value=t.depTitulo||'⭐ Quem já treinou com a gente';
+  if(el('cfgDepSub'))el('cfgDepSub').value=t.depSub||'Veja a transformação dos nossos clientes';
+  renderDifCardsAdmin();
+}
+
 async function init(){
   const ok=await dbLoad();
   const st=el('dbStatus');
@@ -1152,6 +1287,7 @@ async function init(){
   else{st.className='db-status db-err';st.innerHTML='<i class="fas fa-exclamation-circle"></i> Erro de conexão';}
   applyThemeVars(S.loja.theme||'verde');
   applyLoja();renderCarousel();renderCategories();renderProds('all');renderDeps();
+  renderDiferenciais();renderStats();renderHeroExtras();
   setupDots();startCar();initSizeBtns();initColorSwatches();renderCustomColorsList();
   el('pageLoader').style.display='none';
 }
