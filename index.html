@@ -218,9 +218,12 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
 .social-icon-btn:hover{background:var(--accent2);border-color:var(--accent2);}
 .footer-bottom{max-width:1200px;margin:2rem auto 0;border-top:1px solid rgba(255,255,255,.1);padding-top:1.5rem;display:flex;align-items:center;justify-content:space-between;}
 .footer-bottom p{color:rgba(255,255,255,.35);font-size:.8rem;}
-.admin-dots{display:flex;gap:6px;align-items:center;cursor:pointer;padding:.5rem;}
-.admin-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.15);transition:.2s;}
-.admin-dot.lit{background:var(--accent2);}
+.admin-dots{display:flex;gap:6px;align-items:center;padding:.5rem;}
+.admin-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.15);transition:.25s;cursor:pointer;}
+.admin-dot:hover{background:rgba(255,255,255,.35);}
+.admin-dot.lit{background:var(--accent2);box-shadow:0 0 6px var(--accent2);}
+.admin-dot.err{background:#e53e3e;animation:dotShake .3s ease;}
+@keyframes dotShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
 
 /* ── MODAIS GERAIS ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(27,58,31,.7);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;}
@@ -431,7 +434,11 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
   <div class="footer-bottom">
     <p id="footerCopy">© 2024 Fitness BemEstar Life. Todos os direitos reservados.</p>
     <div class="admin-dots" id="adminDots">
-      <div class="admin-dot"></div><div class="admin-dot"></div><div class="admin-dot"></div><div class="admin-dot"></div><div class="admin-dot"></div>
+      <div class="admin-dot" id="adot0" onclick="dotClick(0)"></div>
+      <div class="admin-dot" id="adot1" onclick="dotClick(1)"></div>
+      <div class="admin-dot" id="adot2" onclick="dotClick(2)"></div>
+      <div class="admin-dot" id="adot3" onclick="dotClick(3)"></div>
+      <div class="admin-dot" id="adot4" onclick="dotClick(4)"></div>
     </div>
   </div>
 </footer>
@@ -583,6 +590,14 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
             <div class="form-group"><label>Parte em itálico (opcional)</label><input type="text" id="cfgLogoItalic" placeholder="Life"/></div>
           </div>
           <p style="font-size:.78rem;color:var(--text-light);margin-bottom:.5rem">💡 O texto em itálico aparece destacado no final do texto de baixo.</p>
+          <div class="form-group" style="margin-top:.8rem">
+            <label>🖼️ Imagem do card "Todos" (opcional)</label>
+            <div class="img-preview-wrap" onclick="document.getElementById('todosImgInput').click()" style="height:100px">
+              <div id="todosImgPreview" class="placeholder-text"><i class="fas fa-image"></i> Clique para adicionar imagem</div>
+            </div>
+            <input type="file" id="todosImgInput" accept="image/*" style="display:none" onchange="previewTodosImg(event)"/>
+            <button class="btn-danger" style="margin-top:.4rem;font-size:.75rem" onclick="removeTodosImg()">🗑️ Remover imagem</button>
+          </div>
         </div>
         <div class="form-group"><label>Descrição da Loja</label><textarea id="cfgDesc" rows="3"></textarea></div>
         <div class="form-group"><label>Texto do Rodapé</label><input type="text" id="cfgFooterDesc"/></div>
@@ -802,6 +817,7 @@ const db=supabase.createClient(SURL,SKEY);
 
 let S={
   textos:{},
+  todosImg:null,
   loja:{nome:'Fitness BemEstar Life',whats:'',whatsLabel:'WhatsApp',whats2:'',whats2Label:'',insta:'',slogan:'',desc:'',footerDesc:'',heroTitle:'Sua Evolução Começa Aqui',theme:'verde'},
   creds:{user:'admin',pass:'1234'},
   slides:[],cats:[],prods:[],deps:[]
@@ -843,6 +859,7 @@ async function dbLoad(){
         footerDesc:cfg.footer_desc||'',heroTitle:cfg.hero_title||'Sua Evolução Começa Aqui',theme:cfg.theme||'verde'
       };
       if(cfg.credentials)S.creds=cfg.credentials;
+    if(cfg.todos_img)S.todosImg=cfg.todos_img||null;
     S.loja.logoEmoji=cfg.logo_emoji||'🌿';
     S.loja.logoTop=cfg.logo_top||'FITNESS';
     S.loja.logoBottom=cfg.logo_bottom||'Bem Estar Life';
@@ -867,6 +884,7 @@ async function dbSaveCfg(x={}){
     insta:S.loja.insta,slogan:S.loja.slogan,desc_loja:S.loja.desc,footer_desc:S.loja.footerDesc,
     hero_title:S.loja.heroTitle,theme:S.loja.theme,credentials:S.creds,textos:S.textos,
     logo_emoji:S.loja.logoEmoji||'🌿',logo_top:S.loja.logoTop||'FITNESS',
+    todos_img:S.todosImg||null,
     logo_bottom:S.loja.logoBottom||'Bem Estar Life',logo_italic:S.loja.logoItalic||'Life',...x};
   const {error}=await db.from('loja_config').upsert(r);return error;
 }
@@ -977,8 +995,10 @@ function openProdModal(pid){
   const wa1=(S.loja.whats||'').replace(/\D/g,'');
   const wa2=(S.loja.whats2||'').replace(/\D/g,'');
   const precoFinal=p.precoPromo?parseFloat(p.precoPromo):parseFloat(p.preco);
-  const skuTxt=p.sku?`\nCódigo: ${p.sku}`:'';
-  const msg=encodeURIComponent(`Olá! 👋 Tenho interesse em um produto da *Fitness BemEstar Life*!\n\n🛍️ *${p.nome}*${skuTxt}\n💰 Valor: *R$ ${precoFinal.toFixed(2)}*\n\nPoderia me dar mais informações? 😊`);
+  const skuTxt=p.sku?'\nCódigo: '+p.sku:'';
+  const nomeLoja=S.loja.nome||'Fitness BemEstar Life';
+  const msgTxt='Olá! Tenho interesse em um produto da '+nomeLoja+'!\n\n*'+p.nome+'*'+skuTxt+'\nValor: *R$ '+precoFinal.toFixed(2)+'*\n\nPoderia me dar mais informações?';
+  const msg=encodeURIComponent(msgTxt);
   modalImgs=p.imgs&&p.imgs.length?p.imgs:[];modalCur=0;
   el('modalCat').innerHTML=`<i class="fas fa-tag"></i> ${cat?cat.nome:'Produto'}`;
   el('modalName').textContent=p.nome;
@@ -1081,10 +1101,11 @@ function renderCategories(){
       </div>
     </div>`).join('')+`
     <div class="category-card" onclick="filterCat('all','Todos os Produtos',this)">
-      <div class="cat-icon" style="background:var(--accent)">
-        <div style="background:var(--accent);width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(46,125,50,.35)">
-          <i class="fas fa-border-all" style="font-size:2rem;color:#fff"></i>
-        </div>
+      <div class="cat-icon" style="${S.todosImg?'':'background:var(--accent)'}">
+        ${S.todosImg
+          ? `<img src="${S.todosImg}" alt="Todos" style="width:100%;height:100%;object-fit:cover;display:block"/>`
+          : `<div style="background:var(--accent);width:64px;height:64px;border-radius:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(46,125,50,.35)"><i class="fas fa-border-all" style="font-size:2rem;color:#fff"></i></div>`
+        }
       </div>
       <div class="cat-label">
         <div class="cat-name">Todos</div>
@@ -1101,8 +1122,10 @@ function renderProds(catId){
     const thumb=p.imgs&&p.imgs[0]?p.imgs[0]:null;
     const count=p.imgs&&p.imgs.length>1?`<span class="prod-img-count"><i class="fas fa-images"></i> ${p.imgs.length}</span>`:'';
     const precoCard=p.precoPromo?parseFloat(p.precoPromo):parseFloat(p.preco);
-    const skuCard=p.sku?`\nCódigo: ${p.sku}`:'';
-    const msg=encodeURIComponent(`Olá! 👋 Tenho interesse em um produto da *Fitness BemEstar Life*!\n\n🛍️ *${p.nome}*${skuCard}\n💰 Valor: *R$ ${precoCard.toFixed(2)}*\n\nPoderia me dar mais informações? 😊`);
+    const skuCard=p.sku?'\nCódigo: '+p.sku:'';
+    const nomeLoja2=S.loja.nome||'Fitness BemEstar Life';
+    const msgTxt2='Olá! Tenho interesse em um produto da '+nomeLoja2+'!\n\n*'+p.nome+'*'+skuCard+'\nValor: *R$ '+precoCard.toFixed(2)+'*\n\nPoderia me dar mais informações?';
+    const msg=encodeURIComponent(msgTxt2);
     const waLink=wa?`https://wa.me/${wa}?text=${msg}`:'#';
     const precoHtml=p.precoPromo
       ?`<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap"><span class="product-price-old">R$ ${parseFloat(p.preco).toFixed(2)}</span><span class="product-price-promo">R$ ${parseFloat(p.precoPromo).toFixed(2)}</span><span class="promo-badge">PROMOÇÃO</span></div>`
@@ -1135,7 +1158,45 @@ function applyTheme(name,e){S.loja.theme=name;applyThemeVars(name);document.quer
 function applyCustomColor(){const h=el('customColor').value;document.documentElement.style.setProperty('--primary',h);document.documentElement.style.setProperty('--accent',h);toast('🎨 Cor aplicada!');}
 
 // ── ADMIN ──
-function setupDots(){const dots=el('adminDots');dots.addEventListener('click',()=>{dotN++;clearTimeout(dotT);dots.querySelectorAll('.admin-dot').forEach((d,i)=>d.classList.toggle('lit',i<dotN));if(dotN>=5){dotN=0;dots.querySelectorAll('.admin-dot').forEach(d=>d.classList.remove('lit'));openModal('loginModal');}else{dotT=setTimeout(()=>{dotN=0;dots.querySelectorAll('.admin-dot').forEach(d=>d.classList.remove('lit'));},3000);}});}
+// Sequência secreta: posições 4,2,0,3,1 (índices base 0 = pontinhos da direita p/ esquerda alternado)
+// Editável: troque os números abaixo para mudar a sequência (0=1º pontinho, 4=5º pontinho)
+let DOT_SEQ = [4,2,0,3,1]; // sequência secreta
+let dotProgress = [];
+let dotTimer2;
+
+function setupDots(){} // mantido por compatibilidade
+
+function dotClick(idx){
+  clearTimeout(dotTimer2);
+  const expected = DOT_SEQ[dotProgress.length];
+  if(idx === expected){
+    dotProgress.push(idx);
+    el('adot'+idx).classList.add('lit');
+    if(dotProgress.length === DOT_SEQ.length){
+      // Sequência completa!
+      setTimeout(()=>{
+        resetDots();
+        openModal('loginModal');
+      }, 300);
+      return;
+    }
+    // Reset automático após 4 segundos de inatividade
+    dotTimer2 = setTimeout(()=>resetDots(), 4000);
+  } else {
+    // Clique errado — pisca vermelho em todos
+    resetDots();
+    document.querySelectorAll('.admin-dot').forEach(d=>{
+      d.classList.add('err');
+      setTimeout(()=>d.classList.remove('err'), 350);
+    });
+  }
+}
+
+function resetDots(){
+  dotProgress = [];
+  clearTimeout(dotTimer2);
+  document.querySelectorAll('.admin-dot').forEach(d=>d.classList.remove('lit','err'));
+}
 function doLogin(){const u=g('loginUser'),p=g('loginPass');if(u===S.creds.user&&p===S.creds.pass){closeModal('loginModal');openAdmin();el('loginError').style.display='none';el('loginUser').value='';el('loginPass').value='';}else{el('loginError').style.display='block';}}
 function openAdmin(){
   el('adminPanel').classList.add('open');
@@ -1147,7 +1208,7 @@ function openAdmin(){
   if(el('cfgLogoTop'))el('cfgLogoTop').value=S.loja.logoTop||'FITNESS';
   if(el('cfgLogoBottom'))el('cfgLogoBottom').value=(S.loja.logoBottom||'Bem Estar Life').replace(/<[^>]+>/g,'');
   if(el('cfgLogoItalic'))el('cfgLogoItalic').value=S.loja.logoItalic||'Life';el('cfgHeroTitle').value=S.loja.heroTitle||'';
-  renderSlidesList();renderCatList();renderProdList();renderDepList();populateCatSel();fillTextosAdmin();
+  renderSlidesList();renderCatList();renderProdList();renderDepList();populateCatSel();fillTextosAdmin();fillTodosImgAdmin();
 }
 function exitAdmin(){el('adminPanel').classList.remove('open');applyLoja();renderCategories();renderProds('all');}
 function showTab(id,btn){document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));el(id).classList.add('active');if(btn)btn.classList.add('active');}
@@ -1211,6 +1272,29 @@ function depPrev(){depCur--;_depMove();}
 // ── INIT ──
 
 // ══════════════════════
+//  IMAGEM "TODOS"
+// ══════════════════════
+async function previewTodosImg(e){
+  const f=e.target.files[0];if(!f)return;
+  const img=await compressImage(f,600,400,.82);
+  S.todosImg=img;
+  el('todosImgPreview').innerHTML=`<img src="${img}" style="max-height:90px;object-fit:contain"/>`;
+  const err=await dbSaveCfg();
+  if(!err){renderCategories();toast('✅ Imagem do Todos salva!');}
+}
+function removeTodosImg(){
+  S.todosImg=null;
+  el('todosImgPreview').innerHTML='<i class="fas fa-image"></i> Clique para adicionar imagem';
+  el('todosImgInput').value='';
+  dbSaveCfg();renderCategories();toast('🗑️ Imagem removida!');
+}
+function fillTodosImgAdmin(){
+  if(S.todosImg&&el('todosImgPreview')){
+    el('todosImgPreview').innerHTML=`<img src="${S.todosImg}" style="max-height:90px;object-fit:contain"/>`;
+  }
+}
+
+// ══════════════════════
 //  TEXTOS EDITÁVEIS
 // ══════════════════════
 const DIF_PADRAO=[
@@ -1242,11 +1326,23 @@ function renderStats(){
 
 function renderHeroExtras(){
   if(!S.textos)return;
-  if(S.textos.eyebrow){const e=el('heroEyebrow');if(e)e.innerHTML='<i class="fas fa-leaf"></i> '+S.textos.eyebrow;}
-  if(S.textos.badges&&S.textos.badges.length){
-    const w=el('heroBadgesWrap');
-    if(w)w.innerHTML=S.textos.badges.map(b=>`<span class="hero-badge">${b}</span>`).join('');
+  // Eyebrow
+  const eyebrowEl=el('heroEyebrow');
+  if(eyebrowEl)eyebrowEl.innerHTML='<i class="fas fa-leaf"></i> '+(S.textos.eyebrow||'Saúde · Fitness · Bem-Estar');
+  // Título hero
+  const titleEl=el('heroTitle');
+  if(titleEl&&S.loja.heroTitle){
+    // Destacar primeira palavra em span
+    const words=S.loja.heroTitle.split(' ');
+    if(words.length>1){const last=words.pop();titleEl.innerHTML=words.join(' ')+' <span>'+last+'</span>';}
+    else titleEl.textContent=S.loja.heroTitle;
   }
+  // Badges
+  const w=el('heroBadgesWrap');
+  if(w&&S.textos.badges&&S.textos.badges.length){
+    w.innerHTML=S.textos.badges.map(b=>`<span class="hero-badge">${b}</span>`).join('');
+  }
+  // Depoimentos
   if(S.textos.depTitulo){const e=el('depTitulo');if(e)e.innerHTML=S.textos.depTitulo;}
   if(S.textos.depSub){const e=el('depSubtitulo');if(e)e.textContent=S.textos.depSub;}
 }
@@ -1293,11 +1389,12 @@ function collectDifCards(){
 
 async function saveTextos(){
   if(!S.textos)S.textos={};
-  const eyebrow=g('cfgEyebrow');if(eyebrow)S.textos.eyebrow=eyebrow;
-  const heroDesc=g('cfgHeroDesc');if(heroDesc){S.loja.desc=heroDesc;}
-  const heroTitle=g('cfgHeroTitle2');if(heroTitle)S.loja.heroTitle=heroTitle;
-  const badgesRaw=g('cfgHeroBadges');
+  const eyebrow=el('cfgEyebrow').value;S.textos.eyebrow=eyebrow||'Saúde · Fitness · Bem-Estar';
+  const heroDesc=el('cfgHeroDesc').value;if(heroDesc.trim())S.loja.desc=heroDesc.trim();
+  const heroTitle=el('cfgHeroTitle2').value;if(heroTitle.trim())S.loja.heroTitle=heroTitle.trim();
+  const badgesRaw=el('cfgHeroBadges').value.trim();
   if(badgesRaw)S.textos.badges=badgesRaw.split(',').map(b=>b.trim()).filter(Boolean);
+  else S.textos.badges=[];
   const statsRaw=el('cfgStats').value.trim();
   if(statsRaw){
     S.textos.stats=statsRaw.split('\n').map(l=>{const p=l.split('|');return{num:(p[0]||'').trim(),label:(p[1]||'').trim()};}).filter(s=>s.num&&s.label);
@@ -1315,9 +1412,9 @@ async function saveTextos(){
 function fillTextosAdmin(){
   const t=S.textos||{};
   if(el('cfgEyebrow'))el('cfgEyebrow').value=t.eyebrow||'Saúde · Fitness · Bem-Estar';
-  if(el('cfgHeroTitle2'))el('cfgHeroTitle2').value=S.loja.heroTitle||'';
+  if(el('cfgHeroTitle2'))el('cfgHeroTitle2').value=S.loja.heroTitle||'Sua Evolução Começa Aqui';
   if(el('cfgHeroDesc'))el('cfgHeroDesc').value=S.loja.desc||'';
-  if(el('cfgHeroBadges'))el('cfgHeroBadges').value=(t.badges||[]).join(', ');
+  if(el('cfgHeroBadges'))el('cfgHeroBadges').value=(t.badges&&t.badges.length?t.badges:['👕 Roupas Fitness','💊 Suplementos','🏋️ Equipamentos','🚚 Entrega Rápida']).join(', ');
   const stats=t.stats&&t.stats.length?t.stats:STATS_PADRAO;
   if(el('cfgStats'))el('cfgStats').value=stats.map(s=>s.num+'|'+s.label).join('\n');
   if(el('cfgDifTitulo'))el('cfgDifTitulo').value=t.difTitulo||'💪 Por que nos Escolher?';
