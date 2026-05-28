@@ -331,10 +331,10 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
 <header>
   <div class="header-inner">
     <a class="logo" onclick="scrollToTop()">
-      <div class="logo-icon">🌿</div>
+      <div class="logo-icon" id="logoEmoji">🌿</div>
       <div class="logo-main">
-        <span class="logo-top">Fitness</span>
-        <span class="logo-bottom" id="logoName">Bem Estar <em>Life</em></span>
+        <span class="logo-top" id="logoTop">FITNESS</span>
+        <span class="logo-bottom" id="logoBottom">Bem Estar <em>Life</em></span>
       </div>
     </a>
     <div class="header-actions">
@@ -573,6 +573,16 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
           <div class="form-group"><label>WhatsApp 2 — Nome/Label</label><input type="text" id="cfgWhats2Label" placeholder="Ex: Suporte, Maria..."/></div>
           <div class="form-group"><label>Instagram</label><input type="text" id="cfgInsta" placeholder="@fitnessbemestarlife"/></div>
           <div class="form-group"><label>Slogan</label><input type="text" id="cfgSlogan"/></div>
+        </div>
+        <div class="admin-card" style="margin-top:0;margin-bottom:1rem;border:2px dashed var(--border)">
+          <h3>🌿 Logo do Site</h3>
+          <div class="admin-grid">
+            <div class="form-group"><label>Emoji da Logo</label><input type="text" id="cfgLogoEmoji" placeholder="🌿" maxlength="4"/></div>
+            <div class="form-group"><label>Texto de cima (pequeno)</label><input type="text" id="cfgLogoTop" placeholder="FITNESS"/></div>
+            <div class="form-group"><label>Texto de baixo (grande)</label><input type="text" id="cfgLogoBottom" placeholder="Bem Estar Life"/></div>
+            <div class="form-group"><label>Parte em itálico (opcional)</label><input type="text" id="cfgLogoItalic" placeholder="Life"/></div>
+          </div>
+          <p style="font-size:.78rem;color:var(--text-light);margin-bottom:.5rem">💡 O texto em itálico aparece destacado no final do texto de baixo.</p>
         </div>
         <div class="form-group"><label>Descrição da Loja</label><textarea id="cfgDesc" rows="3"></textarea></div>
         <div class="form-group"><label>Texto do Rodapé</label><input type="text" id="cfgFooterDesc"/></div>
@@ -832,6 +842,10 @@ async function dbLoad(){
         footerDesc:cfg.footer_desc||'',heroTitle:cfg.hero_title||'Sua Evolução Começa Aqui',theme:cfg.theme||'verde'
       };
       if(cfg.credentials)S.creds=cfg.credentials;
+    S.loja.logoEmoji=cfg.logo_emoji||'🌿';
+    S.loja.logoTop=cfg.logo_top||'FITNESS';
+    S.loja.logoBottom=cfg.logo_bottom||'Bem Estar Life';
+    S.loja.logoItalic=cfg.logo_italic||'Life';
     if(cfg.textos)S.textos=cfg.textos||{};
     }
     const {data:sl}=await db.from('slides').select('*').order('ordem');
@@ -850,7 +864,9 @@ async function dbSaveCfg(x={}){
   const r={id:'main',nome:S.loja.nome,whats:S.loja.whats,whats_label:S.loja.whatsLabel,
     whats2:S.loja.whats2,whats2_label:S.loja.whats2Label,
     insta:S.loja.insta,slogan:S.loja.slogan,desc_loja:S.loja.desc,footer_desc:S.loja.footerDesc,
-    hero_title:S.loja.heroTitle,theme:S.loja.theme,credentials:S.creds,textos:S.textos,...x};
+    hero_title:S.loja.heroTitle,theme:S.loja.theme,credentials:S.creds,textos:S.textos,
+    logo_emoji:S.loja.logoEmoji||'🌿',logo_top:S.loja.logoTop||'FITNESS',
+    logo_bottom:S.loja.logoBottom||'Bem Estar Life',logo_italic:S.loja.logoItalic||'Life',...x};
   const {error}=await db.from('loja_config').upsert(r);return error;
 }
 async function saveLojaConfig(){
@@ -859,6 +875,8 @@ async function saveLojaConfig(){
   S.loja.whats2=g('cfgWhats2');S.loja.whats2Label=g('cfgWhats2Label')||'WhatsApp 2';
   S.loja.insta=g('cfgInsta');S.loja.slogan=g('cfgSlogan');
   S.loja.desc=g('cfgDesc');S.loja.footerDesc=g('cfgFooterDesc');
+  const le=g('cfgLogoEmoji');const lt=g('cfgLogoTop');const lb=g('cfgLogoBottom');const li=g('cfgLogoItalic');
+  if(le)S.loja.logoEmoji=le;if(lt)S.loja.logoTop=lt;if(lb)S.loja.logoBottom=lb;S.loja.logoItalic=li||'';
   const e=await dbSaveCfg();if(e){toast('❌ '+e.message);return;}
   applyLoja();toast('✅ Salvo!');
 }
@@ -1008,7 +1026,21 @@ document.addEventListener('keydown',e=>{if(!el('prodModal').classList.contains('
 
 // ── RENDER ──
 function applyLoja(){
-  const l=S.loja;document.title=l.nome;el('logoName').textContent=l.nome;el('footerLogoName').textContent=l.nome;
+  const l=S.loja;document.title=l.nome;
+  // Logo header
+  const emojiEl=document.getElementById('logoEmoji');
+  const topEl=document.getElementById('logoTop');
+  const bottomEl=document.getElementById('logoBottom');
+  if(emojiEl)emojiEl.textContent=l.logoEmoji||'🌿';
+  if(topEl)topEl.textContent=l.logoTop||'FITNESS';
+  if(bottomEl){
+    const italic=l.logoItalic||'Life';
+    const base=(l.logoBottom||'Bem Estar Life');
+    const parts=italic&&base.includes(italic)?base.replace(italic,`<em>${italic}</em>`):base;
+    bottomEl.innerHTML=parts;
+  }
+  // Footer logo
+  el('footerLogoName').innerHTML='🌿 <small>'+(l.logoTop||'FITNESS')+'</small>'+(l.logoBottom||'Bem Estar')+(l.logoItalic?` <em>${l.logoItalic}</em>`:'');
   el('heroTitle').textContent=l.heroTitle||'Sua Evolução Começa Aqui';
   el('heroDesc').textContent=l.desc||'Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.';
   el('footerDesc').textContent=l.footerDesc||'';
@@ -1100,7 +1132,11 @@ function openAdmin(){
   el('cfgNome').value=S.loja.nome;el('cfgWhats').value=S.loja.whats;el('cfgWhatsLabel').value=S.loja.whatsLabel||'';
   el('cfgWhats2').value=S.loja.whats2||'';el('cfgWhats2Label').value=S.loja.whats2Label||'';
   el('cfgInsta').value=S.loja.insta;el('cfgSlogan').value=S.loja.slogan;
-  el('cfgDesc').value=S.loja.desc;el('cfgFooterDesc').value=S.loja.footerDesc;el('cfgHeroTitle').value=S.loja.heroTitle||'';
+  el('cfgDesc').value=S.loja.desc;el('cfgFooterDesc').value=S.loja.footerDesc;
+  if(el('cfgLogoEmoji'))el('cfgLogoEmoji').value=S.loja.logoEmoji||'🌿';
+  if(el('cfgLogoTop'))el('cfgLogoTop').value=S.loja.logoTop||'FITNESS';
+  if(el('cfgLogoBottom'))el('cfgLogoBottom').value=(S.loja.logoBottom||'Bem Estar Life').replace(/<[^>]+>/g,'');
+  if(el('cfgLogoItalic'))el('cfgLogoItalic').value=S.loja.logoItalic||'Life';el('cfgHeroTitle').value=S.loja.heroTitle||'';
   renderSlidesList();renderCatList();renderProdList();renderDepList();populateCatSel();fillTextosAdmin();
 }
 function exitAdmin(){el('adminPanel').classList.remove('open');applyLoja();renderCategories();renderProds('all');}
