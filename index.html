@@ -650,6 +650,13 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
 
     <!-- PRODUTOS -->
     <div class="admin-section" id="tabProdutos">
+      <div class="admin-card" id="prodListCard" style="border:2px solid var(--border);background:#fff;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem">
+          <h3 style="margin:0">📦 Produtos Cadastrados (<span id="prodCount">0</span>)</h3>
+          <input type="text" id="prodSearch" placeholder="🔍 Buscar produto..." oninput="filterProdList()" style="padding:.45rem .9rem;border:1.5px solid var(--border);border-radius:10px;font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none;width:200px"/>
+        </div>
+        <div id="productsList"></div>
+      </div>
       <div class="admin-card">
         <h3 id="prodFormTitle">Novo Produto</h3>
         <div class="admin-grid">
@@ -698,7 +705,6 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
         <input type="hidden" id="prodEditId"/>
         <button class="btn-primary" id="saveProdBtn" onclick="saveProduct()">💾 Salvar Produto</button>
       </div>
-      <div class="admin-card"><h3>Produtos Cadastrados</h3><div id="productsList"></div></div>
     </div>
 
     <!-- DEPOIMENTOS -->
@@ -984,8 +990,22 @@ async function saveProduct(){
   renderProds('all');renderProdList();renderCategories();resetProdForm();
 }
 async function delProd(id){if(!confirm('Remover produto?'))return;await db.from('produtos').delete().eq('id',id);S.prods=S.prods.filter(p=>p.id!==id);renderProds('all');renderProdList();renderCategories();toast('🗑️ Removido!');}
-function editProd(id){const p=S.prods.find(x=>x.id===id);el('prodNome').value=p.nome;el('prodPreco').value=p.preco;el('prodPrecoPromo').value=p.precoPromo||'';el('prodQtd').value=p.qtd||0;el('prodSku').value=p.sku||'';el('prodCategoria').value=p.catId;el('prodEditId').value=id;el('prodDesc').value=p.desc||'';el('prodFrete').value=p.frete||'';el('prodFormTitle').textContent='Editar Produto';fillSlots(p.imgs||[]);fillSizeBtns(p.tamanhos||[]);fillColorSwatches(p.cores||[]);showTab('tabProdutos',document.querySelectorAll('.admin-tab')[3]);toast('✏️ Editando...');}
-function renderProdList(){const e=el('productsList');if(!S.prods.length){e.innerHTML='<div class="empty-state"><i class="fas fa-box-open"></i>Nenhum produto.</div>';return;}e.innerHTML=S.prods.map(p=>{const cat=S.cats.find(c=>c.id===p.catId);const thumb=p.imgs&&p.imgs[0]?p.imgs[0]:null;const precoStr=p.precoPromo?`<span style="text-decoration:line-through;color:var(--text-light)">R$ ${parseFloat(p.preco).toFixed(2)}</span> → <span style="color:#e53e3e;font-weight:700">R$ ${parseFloat(p.precoPromo).toFixed(2)}</span>`:`R$ ${parseFloat(p.preco).toFixed(2)}`;return `<div class="list-item"><div class="list-item-info">${thumb?`<img src="${thumb}" style="width:44px;height:44px;object-fit:cover;border-radius:8px"/>`:'<i class="fas fa-dumbbell" style="font-size:1.5rem;color:var(--border)"></i>'}<div><div style="font-weight:600">${p.nome}${p.precoPromo?'<span style="background:#e53e3e;color:#fff;font-size:.65rem;padding:.1rem .4rem;border-radius:50px;margin-left:.4rem">PROMO</span>':''}</div><div style="font-size:.8rem;color:var(--text-light)">${precoStr} · ${cat?cat.nome:'—'} · ${(p.imgs||[]).length} foto(s)${p.sku?' · <span style="background:var(--primary-light);color:var(--accent);font-size:.7rem;padding:.1rem .4rem;border-radius:6px;font-weight:700">#'+p.sku+'</span>':''}</div></div></div><div class="list-item-actions"><button class="btn-edit" onclick="editProd('${p.id}')"><i class="fas fa-pen"></i></button><button class="btn-danger" onclick="delProd('${p.id}')"><i class="fas fa-trash"></i></button></div></div>`;}).join('');}
+function editProd(id){const p=S.prods.find(x=>x.id===id);el('prodNome').value=p.nome;el('prodPreco').value=p.preco;el('prodPrecoPromo').value=p.precoPromo||'';el('prodQtd').value=p.qtd||0;el('prodSku').value=p.sku||'';
+  // Scroll para o formulário
+  setTimeout(()=>{const f=el('prodFormTitle');if(f)f.scrollIntoView({behavior:'smooth',block:'start'});},100);el('prodCategoria').value=p.catId;el('prodEditId').value=id;el('prodDesc').value=p.desc||'';el('prodFrete').value=p.frete||'';el('prodFormTitle').textContent='Editar Produto';fillSlots(p.imgs||[]);fillSizeBtns(p.tamanhos||[]);fillColorSwatches(p.cores||[]);showTab('tabProdutos',document.querySelectorAll('.admin-tab')[3]);toast('✏️ Editando...');}
+function filterProdList(){
+  const q=(el('prodSearch')?el('prodSearch').value.trim().toLowerCase():'');
+  const items=el('productsList').querySelectorAll('.list-item');
+  items.forEach(item=>{
+    const txt=item.textContent.toLowerCase();
+    item.style.display=(!q||txt.includes(q))?'':'none';
+  });
+}
+function renderProdList(){
+  const e=el('productsList');
+  const countEl=el('prodCount');
+  if(countEl)countEl.textContent=S.prods.length;
+  if(!S.prods.length){e.innerHTML='<div class="empty-state"><i class="fas fa-box-open"></i>Nenhum produto cadastrado.</div>';return;}e.innerHTML=S.prods.map(p=>{const cat=S.cats.find(c=>c.id===p.catId);const thumb=p.imgs&&p.imgs[0]?p.imgs[0]:null;const precoStr=p.precoPromo?`<span style="text-decoration:line-through;color:var(--text-light)">R$ ${parseFloat(p.preco).toFixed(2)}</span> → <span style="color:#e53e3e;font-weight:700">R$ ${parseFloat(p.precoPromo).toFixed(2)}</span>`:`R$ ${parseFloat(p.preco).toFixed(2)}`;return `<div class="list-item"><div class="list-item-info">${thumb?`<img src="${thumb}" style="width:44px;height:44px;object-fit:cover;border-radius:8px"/>`:'<i class="fas fa-dumbbell" style="font-size:1.5rem;color:var(--border)"></i>'}<div><div style="font-weight:600">${p.nome}${p.precoPromo?'<span style="background:#e53e3e;color:#fff;font-size:.65rem;padding:.1rem .4rem;border-radius:50px;margin-left:.4rem">PROMO</span>':''}</div><div style="font-size:.8rem;color:var(--text-light)">${precoStr} · ${cat?cat.nome:'—'} · ${(p.imgs||[]).length} foto(s)${p.sku?' · <span style="background:var(--primary-light);color:var(--accent);font-size:.7rem;padding:.1rem .4rem;border-radius:6px;font-weight:700">#'+p.sku+'</span>':''}</div></div></div><div class="list-item-actions"><button class="btn-edit" onclick="editProd('${p.id}')"><i class="fas fa-pen"></i></button><button class="btn-danger" onclick="delProd('${p.id}')"><i class="fas fa-trash"></i></button></div></div>`;}).join('');}
 function resetProdForm(){resetSlots();selectedSizes=[];selectedColors=[];customColors=[];['prodNome','prodPreco','prodPrecoPromo','prodQtd','prodEditId','prodDesc','prodFrete','prodSku'].forEach(i=>el(i).value='');initSizeBtns();initColorSwatches();renderCustomColorsList();}
 function populateCatSel(){const s=el('prodCategoria');s.innerHTML=S.cats.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');}
 
@@ -1208,9 +1228,25 @@ function openAdmin(){
   if(el('cfgLogoBottom'))el('cfgLogoBottom').value=(S.loja.logoBottom||'Bem Estar Life').replace(/<[^>]+>/g,'');
   if(el('cfgLogoItalic'))el('cfgLogoItalic').value=S.loja.logoItalic||'Life';el('cfgHeroTitle').value=S.loja.heroTitle||'';
   renderSlidesList();renderCatList();renderProdList();renderDepList();populateCatSel();fillTextosAdmin();fillTodosImgAdmin();
+  // Restaurar aba ativa
+  try{
+    const savedTab=sessionStorage.getItem('adminTab');
+    if(savedTab&&el(savedTab)){
+      const tabBtns=document.querySelectorAll('.admin-tab');
+      const tabIds=['tabLoja','tabCarrossel','tabCategorias','tabProdutos','tabDepoimentos','tabTextos','tabConfigs','tabSeguranca'];
+      const idx=tabIds.indexOf(savedTab);
+      if(idx>=0&&tabBtns[idx])showTab(savedTab,tabBtns[idx]);
+    }
+  }catch(e){}
 }
 function exitAdmin(){el('adminPanel').classList.remove('open');applyLoja();renderCategories();renderProds('all');renderDiferenciais();renderStats();renderHeroExtras();}
-function showTab(id,btn){document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));el(id).classList.add('active');if(btn)btn.classList.add('active');}
+function showTab(id,btn){
+  document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  el(id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  try{sessionStorage.setItem('adminTab',id);}catch(e){}
+}
 
 // ── UTILS ──
 function el(id){return document.getElementById(id);}
