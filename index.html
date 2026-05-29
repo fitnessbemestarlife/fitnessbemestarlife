@@ -1064,8 +1064,7 @@ function applyLoja(){
   }
   // Footer logo
   el('footerLogoName').innerHTML='🌿 <small>'+(l.logoTop||'FITNESS')+'</small>'+(l.logoBottom||'Bem Estar')+(l.logoItalic?` <em>${l.logoItalic}</em>`:'');
-  el('heroTitle').textContent=l.heroTitle||'Sua Evolução Começa Aqui';
-  el('heroDesc').textContent=l.desc||'Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.';
+  // heroTitle e heroDesc são tratados por renderHeroExtras() para manter span colorido e badges
   el('footerDesc').textContent=l.footerDesc||'';
   el('footerCopy').textContent=`© ${new Date().getFullYear()} ${l.nome}. Todos os direitos reservados.`;
   const wa=(l.whats||'').replace(/\D/g,'');
@@ -1325,26 +1324,30 @@ function renderStats(){
 }
 
 function renderHeroExtras(){
-  if(!S.textos)return;
-  // Eyebrow
+  const t=S.textos||{};
+  // 1. Eyebrow
   const eyebrowEl=el('heroEyebrow');
-  if(eyebrowEl)eyebrowEl.innerHTML='<i class="fas fa-leaf"></i> '+(S.textos.eyebrow||'Saúde · Fitness · Bem-Estar');
-  // Título hero
+  if(eyebrowEl)eyebrowEl.innerHTML='<i class="fas fa-leaf"></i> '+(t.eyebrow||'Saúde · Fitness · Bem-Estar');
+  // 2. Título — última palavra em verde
   const titleEl=el('heroTitle');
-  if(titleEl&&S.loja.heroTitle){
-    // Destacar primeira palavra em span
-    const words=S.loja.heroTitle.split(' ');
+  if(titleEl){
+    const titulo=S.loja.heroTitle||'Sua Evolução Começa Aqui';
+    const words=titulo.trim().split(' ');
     if(words.length>1){const last=words.pop();titleEl.innerHTML=words.join(' ')+' <span>'+last+'</span>';}
-    else titleEl.textContent=S.loja.heroTitle;
+    else titleEl.textContent=titulo;
   }
-  // Badges
+  // 3. Descrição
+  const descEl=el('heroDesc');
+  if(descEl)descEl.textContent=S.loja.desc||'Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.';
+  // 4. Badges
   const w=el('heroBadgesWrap');
-  if(w&&S.textos.badges&&S.textos.badges.length){
-    w.innerHTML=S.textos.badges.map(b=>`<span class="hero-badge">${b}</span>`).join('');
+  if(w){
+    const badges=t.badges&&t.badges.length?t.badges:['👕 Roupas Fitness','💊 Suplementos','🏋️ Equipamentos','🚚 Entrega Rápida'];
+    w.innerHTML=badges.map(b=>`<span class="hero-badge">${b}</span>`).join('');
   }
-  // Depoimentos
-  if(S.textos.depTitulo){const e=el('depTitulo');if(e)e.innerHTML=S.textos.depTitulo;}
-  if(S.textos.depSub){const e=el('depSubtitulo');if(e)e.textContent=S.textos.depSub;}
+  // 5. Depoimentos
+  if(t.depTitulo){const e=el('depTitulo');if(e)e.innerHTML=t.depTitulo;}
+  if(t.depSub){const e=el('depSubtitulo');if(e)e.textContent=t.depSub;}
 }
 
 function renderDifCardsAdmin(){
