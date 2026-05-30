@@ -350,15 +350,10 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
 <!-- HERO -->
 <section class="hero">
   <div class="hero-content">
-    <div class="hero-eyebrow" id="heroEyebrow"><i class="fas fa-leaf"></i> Saúde · Fitness · Bem-Estar</div>
-    <h1 id="heroTitle">Sua <span>Evolução</span><br>Começa Aqui</h1>
-    <p id="heroDesc">Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.</p>
-    <div class="hero-deco" id="heroBadgesWrap">
-      <span class="hero-badge"><i class="fas fa-tshirt"></i> Roupas Fitness</span>
-      <span class="hero-badge"><i class="fas fa-capsules"></i> Suplementos</span>
-      <span class="hero-badge"><i class="fas fa-dumbbell"></i> Equipamentos</span>
-      <span class="hero-badge"><i class="fas fa-truck"></i> Entrega Rápida</span>
-    </div>
+    <div class="hero-eyebrow" id="heroEyebrow"></div>
+    <h1 id="heroTitle"></h1>
+    <p id="heroDesc"></p>
+    <div class="hero-deco" id="heroBadgesWrap"></div>
   </div>
 </section>
 
@@ -1416,33 +1411,41 @@ function renderStats(){
 }
 
 function renderHeroExtras(){
-  const t=S.textos||{};
-  // 1. Eyebrow
-  const eyebrowEl=el('heroEyebrow');
-  if(eyebrowEl)eyebrowEl.innerHTML='<i class="fas fa-leaf"></i> '+(t.eyebrow||'Saúde · Fitness · Bem-Estar');
-  // 2. Título — última palavra em verde
-  const titleEl=el('heroTitle');
+  const t = S.textos || {};
+
+  // EYEBROW
+  const eyebrow = t.eyebrow || 'Saúde · Fitness · Bem-Estar';
+  const eyebrowEl = document.getElementById('heroEyebrow');
+  if(eyebrowEl) eyebrowEl.innerHTML = '<i class="fas fa-leaf"></i> ' + eyebrow;
+
+  // TÍTULO — última palavra em verde
+  const titulo = S.loja.heroTitle || 'Sua Evolução Começa Aqui';
+  const titleEl = document.getElementById('heroTitle');
   if(titleEl){
-    const titulo=S.loja.heroTitle||'Sua Evolução Começa Aqui';
-    const words=titulo.trim().split(' ');
-    if(words.length>1){const last=words.pop();titleEl.innerHTML=words.join(' ')+' <span>'+last+'</span>';}
-    else titleEl.textContent=titulo;
+    const partes = titulo.trim().split(' ');
+    const ultima = partes.pop();
+    titleEl.innerHTML = partes.join(' ') + ' <span>' + ultima + '</span>';
   }
-  // 3. Descrição (parágrafo — nunca badges)
-  const descEl=el('heroDesc');
-  const descTexto=S.loja.heroDesc||S.loja.desc||'';
-  // Garantir que não mostra badges no lugar da descrição
-  const isBadges=descTexto.includes(',')&&descTexto.length<120&&!descTexto.includes(' ');
-  if(descEl)descEl.textContent=(!descTexto||isBadges)?'Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.':descTexto;
-  // 4. Badges
-  const w=el('heroBadgesWrap');
-  if(w){
-    const badges=t.badges&&t.badges.length?t.badges:['👕 Roupas Fitness','💊 Suplementos','🏋️ Equipamentos','🚚 Entrega Rápida'];
-    w.innerHTML=badges.map(b=>`<span class="hero-badge">${b}</span>`).join('');
+
+  // DESCRIÇÃO
+  const desc = S.loja.heroDesc || 'Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.';
+  const descEl = document.getElementById('heroDesc');
+  if(descEl) descEl.textContent = desc;
+
+  // BADGES
+  const badgesEl = document.getElementById('heroBadgesWrap');
+  if(badgesEl){
+    const badges = (t.badges && t.badges.length)
+      ? t.badges
+      : ['👕 Roupas Fitness','💊 Suplementos','🏋️ Equipamentos','🚚 Entrega Rápida'];
+    badgesEl.innerHTML = badges.map(b => '<span class="hero-badge">' + b + '</span>').join('');
   }
-  // 5. Depoimentos
-  if(t.depTitulo){const e=el('depTitulo');if(e)e.innerHTML=t.depTitulo;}
-  if(t.depSub){const e=el('depSubtitulo');if(e)e.textContent=t.depSub;}
+
+  // DEPOIMENTOS
+  const depTitEl = document.getElementById('depTitulo');
+  if(depTitEl && t.depTitulo) depTitEl.innerHTML = t.depTitulo;
+  const depSubEl = document.getElementById('depSubtitulo');
+  if(depSubEl && t.depSub) depSubEl.textContent = t.depSub;
 }
 
 function renderDifCardsAdmin(){
@@ -1486,72 +1489,74 @@ function collectDifCards(){
 }
 
 async function saveTextos(){
-  if(!S.textos)S.textos={};
+  if(!S.textos) S.textos = {};
 
-  // Hero
-  const eyebrowVal=el('cfgEyebrow')?el('cfgEyebrow').value.trim():'';
-  const heroTitleVal=el('cfgHeroTitle2')?el('cfgHeroTitle2').value.trim():'';
-  const heroDescVal=el('cfgHeroDesc')?el('cfgHeroDesc').value.trim():'';
-  const badgesVal=el('cfgHeroBadges')?el('cfgHeroBadges').value.trim():'';
+  // Ler campos do painel
+  const eyebrow  = document.getElementById('cfgEyebrow')  ? document.getElementById('cfgEyebrow').value.trim()  : '';
+  const titulo   = document.getElementById('cfgHeroTitle2')? document.getElementById('cfgHeroTitle2').value.trim(): '';
+  const desc     = document.getElementById('cfgHeroDesc')  ? document.getElementById('cfgHeroDesc').value.trim()  : '';
+  const badgesRaw= document.getElementById('cfgHeroBadges')? document.getElementById('cfgHeroBadges').value.trim(): '';
 
-  if(eyebrowVal)S.textos.eyebrow=eyebrowVal;
-  if(heroTitleVal)S.loja.heroTitle=heroTitleVal;
-  if(heroDescVal)S.loja.heroDesc=heroDescVal; // campo separado, nunca mistura com badges
-  if(badgesVal){
-    S.textos.badges=badgesVal.split(',').map(b=>b.trim()).filter(Boolean);
-  }
+  // Salvar no estado
+  if(eyebrow)   S.textos.eyebrow    = eyebrow;
+  if(titulo)    S.loja.heroTitle    = titulo;
+  if(desc)      S.loja.heroDesc     = desc;
+  if(badgesRaw) S.textos.badges     = badgesRaw.split(',').map(b => b.trim()).filter(Boolean);
 
   // Stats
-  const statsEl=el('cfgStats');
-  if(statsEl&&statsEl.value.trim()){
-    S.textos.stats=statsEl.value.trim().split('\n')
-      .map(l=>{const p=l.split('|');return{num:(p[0]||'').trim(),label:(p[1]||'').trim()};})
-      .filter(s=>s.num&&s.label);
+  const statsEl = document.getElementById('cfgStats');
+  if(statsEl && statsEl.value.trim()){
+    S.textos.stats = statsEl.value.trim().split('\n')
+      .map(l => { const p = l.split('|'); return {num:(p[0]||'').trim(), label:(p[1]||'').trim()}; })
+      .filter(s => s.num && s.label);
   }
 
   // Diferenciais
-  const difTitVal=el('cfgDifTitulo')?el('cfgDifTitulo').value.trim():'';
-  if(difTitVal)S.textos.difTitulo=difTitVal;
-  const difs=collectDifCards();
-  if(difs.length)S.textos.difs=difs;
+  const difTit = document.getElementById('cfgDifTitulo');
+  if(difTit && difTit.value.trim()) S.textos.difTitulo = difTit.value.trim();
+  const difs = collectDifCards();
+  if(difs.length) S.textos.difs = difs;
 
   // Depoimentos
-  const depTitVal=el('cfgDepTitulo')?el('cfgDepTitulo').value.trim():'';
-  const depSubVal=el('cfgDepSub')?el('cfgDepSub').value.trim():'';
-  if(depTitVal)S.textos.depTitulo=depTitVal;
-  if(depSubVal)S.textos.depSub=depSubVal;
+  const depTit = document.getElementById('cfgDepTitulo');
+  const depSub = document.getElementById('cfgDepSub');
+  if(depTit && depTit.value.trim()) S.textos.depTitulo = depTit.value.trim();
+  if(depSub && depSub.value.trim()) S.textos.depSub    = depSub.value.trim();
 
-  // Salvar tudo
-  const payload={
-    textos:S.textos,
-    hero_title:S.loja.heroTitle,
-    desc_loja:S.loja.desc,
-    hero_desc:S.loja.heroDesc||''
-  };
+  // Salvar no banco
   toast('⏳ Salvando...');
-  const err=await dbSaveCfg(payload);
-  if(err){toast('❌ Erro: '+err.message);return;}
+  const err = await dbSaveCfg({
+    textos:    S.textos,
+    hero_title: S.loja.heroTitle,
+    hero_desc:  S.loja.heroDesc || '',
+    desc_loja:  S.loja.desc
+  });
 
-  // Aplicar no site imediatamente
-  applyLoja();
+  if(err){ toast('❌ Erro: ' + err.message); return; }
+
+  // Aplicar imediatamente no site
+  renderHeroExtras();
   renderDiferenciais();
   renderStats();
-  renderHeroExtras();
-  toast('✅ Textos salvos com sucesso!');
+  toast('✅ Salvo! Clique em "← Voltar ao Site" para ver.');
 }
 
 function fillTextosAdmin(){
   const t=S.textos||{};
-  if(el('cfgEyebrow'))el('cfgEyebrow').value=t.eyebrow||'Saúde · Fitness · Bem-Estar';
-  if(el('cfgHeroTitle2'))el('cfgHeroTitle2').value=S.loja.heroTitle||'Sua Evolução Começa Aqui';
-  if(el('cfgHeroDesc'))el('cfgHeroDesc').value=S.loja.heroDesc||S.loja.desc||'Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.';
-  if(el('cfgHeroBadges'))el('cfgHeroBadges').value=(t.badges&&t.badges.length?t.badges:['👕 Roupas Fitness','💊 Suplementos','🏋️ Equipamentos','🚚 Entrega Rápida']).join(', ');
+  const tx = S.textos || {};
+  // Hero
+  if(el('cfgEyebrow'))    el('cfgEyebrow').value    = t.eyebrow || 'Saúde · Fitness · Bem-Estar';
+  if(el('cfgHeroTitle2')) el('cfgHeroTitle2').value  = S.loja.heroTitle || 'Sua Evolução Começa Aqui';
+  if(el('cfgHeroDesc'))   el('cfgHeroDesc').value    = S.loja.heroDesc  || 'Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.';
+  if(el('cfgHeroBadges')) el('cfgHeroBadges').value  = (tx.badges && tx.badges.length ? tx.badges : ['👕 Roupas Fitness','💊 Suplementos','🏋️ Equipamentos','🚚 Entrega Rápida']).join(', ');
   // Stats
-  const statsVal=t.stats&&t.stats.length?t.stats:[{num:'500+',label:'Clientes Ativos'},{num:'100+',label:'Produtos'},{num:'5★',label:'Avaliação'},{num:'2x',label:'Entrega Expressa'}];
-  if(el('cfgStats'))el('cfgStats').value=statsVal.map(s=>s.num+'|'+s.label).join('\n');
-  if(el('cfgDifTitulo'))el('cfgDifTitulo').value=t.difTitulo||'💪 Por que nos Escolher?';
-  if(el('cfgDepTitulo'))el('cfgDepTitulo').value=t.depTitulo||'⭐ Quem já treinou com a gente';
-  if(el('cfgDepSub'))el('cfgDepSub').value=t.depSub||'Veja a transformação dos nossos clientes';
+  const statsVal = tx.stats && tx.stats.length ? tx.stats : [{num:'500+',label:'Clientes Ativos'},{num:'100+',label:'Produtos'},{num:'5★',label:'Avaliação'},{num:'2x',label:'Entrega Expressa'}];
+  if(el('cfgStats'))      el('cfgStats').value       = statsVal.map(s => s.num+'|'+s.label).join('\n');
+  // Diferenciais
+  if(el('cfgDifTitulo'))  el('cfgDifTitulo').value   = tx.difTitulo || '💪 Por que nos Escolher?';
+  // Depoimentos
+  if(el('cfgDepTitulo'))  el('cfgDepTitulo').value   = tx.depTitulo || '⭐ Quem já treinou com a gente';
+  if(el('cfgDepSub'))     el('cfgDepSub').value      = tx.depSub    || 'Veja a transformação dos nossos clientes';
   const stats=t.stats&&t.stats.length?t.stats:STATS_PADRAO;
   if(el('cfgStats'))el('cfgStats').value=stats.map(s=>s.num+'|'+s.label).join('\n');
   if(el('cfgDifTitulo'))el('cfgDifTitulo').value=t.difTitulo||'💪 Por que nos Escolher?';
