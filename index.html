@@ -856,38 +856,76 @@ function compressImage(file,maxW=800,maxH=800,quality=0.72){
 
 async function dbLoad(){
   try{
-    const {data:cfg}=await db.from('loja_config').select('*').eq('id','main').maybeSingle();
+    // Carregar TUDO em paralelo para ser mais rápido e confiável
+    const [
+      {data:cfg},
+      {data:sl},
+      {data:ca},
+      {data:pr},
+      {data:dep}
+    ] = await Promise.all([
+      db.from('loja_config').select('*').eq('id','main').maybeSingle(),
+      db.from('slides').select('*').order('ordem'),
+      db.from('categorias').select('*').order('criado_em'),
+      db.from('produtos').select('*').order('criado_em'),
+      db.from('depoimentos').select('*').order('ordem')
+    ]);
+
+    // Config da loja
     if(cfg){
       S.loja={
-        nome:cfg.nome||'Fitness BemEstar Life',whats:cfg.whats||'',whatsLabel:cfg.whats_label||'WhatsApp',
+        nome:cfg.nome||'Fitness BemEstar Life',
+        whats:cfg.whats||'',whatsLabel:cfg.whats_label||'WhatsApp',
         whats2:cfg.whats2||'',whats2Label:cfg.whats2_label||'',
-        insta:cfg.insta||'',slogan:cfg.slogan||'',desc:cfg.desc_loja||'',
-        footerDesc:cfg.footer_desc||'',heroTitle:cfg.hero_title||'Sua Evolução Começa Aqui',theme:cfg.theme||'verde'
+        insta:cfg.insta||'',slogan:cfg.slogan||'',
+        desc:cfg.desc_loja||'',footerDesc:cfg.footer_desc||'',
+        heroTitle:cfg.hero_title||'Sua Evolução Começa Aqui',
+        heroDesc:cfg.hero_desc||'',
+        theme:cfg.theme||'verde',
+        logoEmoji:cfg.logo_emoji||'🌿',
+        logoTop:cfg.logo_top||'FITNESS',
+        logoBottom:cfg.logo_bottom||'Bem Estar Life',
+        logoItalic:cfg.logo_italic||'Life'
       };
-      // heroDesc separado — nunca mistura com badges
-      S.loja.heroDesc=cfg.hero_desc||'';
       if(cfg.credentials)S.creds=cfg.credentials;
-    if(cfg.todos_img)S.todosImg=cfg.todos_img||null;
-    S.loja.logoEmoji=cfg.logo_emoji||'🌿';
-    S.loja.logoTop=cfg.logo_top||'FITNESS';
-    S.loja.logoBottom=cfg.logo_bottom||'Bem Estar Life';
-    S.loja.logoItalic=cfg.logo_italic||'Life';
-    S.textos=cfg.textos||{};
-    // garantir defaults
-    if(!S.textos.eyebrow)S.textos.eyebrow='';
-    if(!S.textos.badges)S.textos.badges=[];
+      if(cfg.todos_img)S.todosImg=cfg.todos_img||null;
+      S.textos=cfg.textos||{};
+      if(!S.textos.eyebrow)S.textos.eyebrow='';
+      if(!S.textos.badges)S.textos.badges=[];
     }
-    const {data:sl}=await db.from('slides').select('*').order('ordem');
-    if(sl)S.slides=sl.map(s=>({id:s.id,caption:s.caption,img:s.img,ordem:s.ordem||0}));
-    const {data:ca}=await db.from('categorias').select('*').order('criado_em');
-    if(ca)S.cats=ca.map(c=>({id:c.id,nome:c.nome,emoji:c.emoji,img:c.img,size:c.img_size||80}));
-    const {data:pr}=await db.from('produtos').select('*').order('criado_em');
-    if(pr)S.prods=pr.map(p=>({id:p.id,nome:p.nome,preco:p.preco,precoPromo:p.preco_promo||null,tamanhos:p.tamanhos||[],cores:p.cores||[],frete:p.frete||'',sku:p.sku||'',catId:p.cat_id,desc:p.descricao||'',imgs:p.imgs||(p.img?[p.img]:[])}));
-    const {data:dep}=await db.from('depoimentos').select('*').order('ordem');
-    if(dep)S.deps=dep.map(d=>({id:d.id,nome:d.nome,insta:d.insta||'',comentario:d.comentario,stars:d.stars||5,img:d.img||null,ordem:d.ordem||0}));
-    else S.deps=[];
+
+    // Slides
+    if(sl&&sl.length){
+      S.slides=sl.map(s=>({id:s.id,caption:s.caption,img:s.img,ordem:s.ordem||0}));
+    }
+
+    // Categorias
+    if(ca&&ca.length){
+      S.cats=ca.map(c=>({id:c.id,nome:c.nome,emoji:c.emoji,img:c.img,size:c.img_size||80}));
+    }
+
+    // Produtos
+    if(pr&&pr.length){
+      S.prods=pr.map(p=>({
+        id:p.id,nome:p.nome,preco:p.preco,
+        precoPromo:p.preco_promo||null,
+        tamanhos:p.tamanhos||[],cores:p.cores||[],
+        frete:p.frete||'',sku:p.sku||'',
+        catId:p.cat_id,desc:p.descricao||'',
+        imgs:p.imgs||(p.img?[p.img]:[])
+      }));
+    }
+
+    // Depoimentos
+    S.deps=(dep||[]).map(d=>({
+      id:d.id,nome:d.nome,insta:d.insta||'',
+      comentario:d.comentario,stars:d.stars||5,
+      img:d.img||null,ordem:d.ordem||0
+    }));
+
+    console.log('DB carregado — slides:'+S.slides.length+' cats:'+S.cats.length+' prods:'+S.prods.length);
     return true;
-  }catch(e){console.error(e);return false;}
+  }catch(e){console.error('dbLoad erro:',e);return false;}
 }
 async function dbSaveCfg(x={}){
   const r={id:'main',nome:S.loja.nome,whats:S.loja.whats,whats_label:S.loja.whatsLabel,
