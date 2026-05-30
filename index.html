@@ -560,7 +560,7 @@ footer{background:var(--footer-bg);color:#fff;padding:3rem 2rem 2rem;margin-top:
     <button class="admin-tab active" onclick="showTab('tabLoja',this)">🏪 Loja</button>
     <button class="admin-tab" onclick="showTab('tabCarrossel',this)">🎠 Carrossel</button>
     <button class="admin-tab" onclick="showTab('tabCategorias',this)">🗂️ Categorias</button>
-    <button class="admin-tab" onclick="showTab('tabProdutos',this)">💪 Produtos</button>
+    <button class="admin-tab" onclick="showTab('tabProdutos',this);renderProdList();populateCatSel();">💪 Produtos</button>
     <button class="admin-tab" onclick="showTab('tabDepoimentos',this)">⭐ Depoimentos</button>
     <button class="admin-tab" onclick="showTab('tabTextos',this)">✏️ Textos</button>
     <button class="admin-tab" onclick="showTab('tabConfigs',this)">🎨 Aparência</button>
@@ -864,6 +864,8 @@ async function dbLoad(){
         insta:cfg.insta||'',slogan:cfg.slogan||'',desc:cfg.desc_loja||'',
         footerDesc:cfg.footer_desc||'',heroTitle:cfg.hero_title||'Sua Evolução Começa Aqui',theme:cfg.theme||'verde'
       };
+      // heroDesc separado — nunca mistura com badges
+      S.loja.heroDesc=cfg.hero_desc||'';
       if(cfg.credentials)S.creds=cfg.credentials;
     if(cfg.todos_img)S.todosImg=cfg.todos_img||null;
     S.loja.logoEmoji=cfg.logo_emoji||'🌿';
@@ -893,6 +895,7 @@ async function dbSaveCfg(x={}){
     insta:S.loja.insta,slogan:S.loja.slogan,desc_loja:S.loja.desc,footer_desc:S.loja.footerDesc,
     hero_title:S.loja.heroTitle,theme:S.loja.theme,credentials:S.creds,textos:S.textos,
     logo_emoji:S.loja.logoEmoji||'🌿',logo_top:S.loja.logoTop||'FITNESS',
+    hero_desc:S.loja.heroDesc||'',
     todos_img:S.todosImg||null,
     logo_bottom:S.loja.logoBottom||'Bem Estar Life',logo_italic:S.loja.logoItalic||'Life',...x};
   const {error}=await db.from('loja_config').upsert(r);return error;
@@ -1236,6 +1239,8 @@ function openAdmin(){
   if(el('cfgLogoBottom'))el('cfgLogoBottom').value=(S.loja.logoBottom||'Bem Estar Life').replace(/<[^>]+>/g,'');
   if(el('cfgLogoItalic'))el('cfgLogoItalic').value=S.loja.logoItalic||'Life';el('cfgHeroTitle').value=S.loja.heroTitle||'';
   renderSlidesList();renderCatList();renderProdList();renderDepList();populateCatSel();fillTextosAdmin();fillTodosImgAdmin();
+  // Log para debug
+  console.log('Produtos carregados:',S.prods.length);
   // Restaurar aba ativa
   try{
     const savedTab=sessionStorage.getItem('adminTab');
@@ -1385,9 +1390,12 @@ function renderHeroExtras(){
     if(words.length>1){const last=words.pop();titleEl.innerHTML=words.join(' ')+' <span>'+last+'</span>';}
     else titleEl.textContent=titulo;
   }
-  // 3. Descrição
+  // 3. Descrição (parágrafo — nunca badges)
   const descEl=el('heroDesc');
-  if(descEl)descEl.textContent=S.loja.desc||'Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.';
+  const descTexto=S.loja.heroDesc||S.loja.desc||'';
+  // Garantir que não mostra badges no lugar da descrição
+  const isBadges=descTexto.includes(',')&&descTexto.length<120&&!descTexto.includes(' ');
+  if(descEl)descEl.textContent=(!descTexto||isBadges)?'Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.':descTexto;
   // 4. Badges
   const w=el('heroBadgesWrap');
   if(w){
@@ -1450,7 +1458,7 @@ async function saveTextos(){
 
   if(eyebrowVal)S.textos.eyebrow=eyebrowVal;
   if(heroTitleVal)S.loja.heroTitle=heroTitleVal;
-  if(heroDescVal)S.loja.desc=heroDescVal;
+  if(heroDescVal)S.loja.heroDesc=heroDescVal; // campo separado, nunca mistura com badges
   if(badgesVal){
     S.textos.badges=badgesVal.split(',').map(b=>b.trim()).filter(Boolean);
   }
@@ -1479,7 +1487,8 @@ async function saveTextos(){
   const payload={
     textos:S.textos,
     hero_title:S.loja.heroTitle,
-    desc_loja:S.loja.desc
+    desc_loja:S.loja.desc,
+    hero_desc:S.loja.heroDesc||''
   };
   toast('⏳ Salvando...');
   const err=await dbSaveCfg(payload);
@@ -1497,7 +1506,7 @@ function fillTextosAdmin(){
   const t=S.textos||{};
   if(el('cfgEyebrow'))el('cfgEyebrow').value=t.eyebrow||'Saúde · Fitness · Bem-Estar';
   if(el('cfgHeroTitle2'))el('cfgHeroTitle2').value=S.loja.heroTitle||'Sua Evolução Começa Aqui';
-  if(el('cfgHeroDesc'))el('cfgHeroDesc').value=S.loja.desc||'Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.';
+  if(el('cfgHeroDesc'))el('cfgHeroDesc').value=S.loja.heroDesc||S.loja.desc||'Roupas fitness, suplementos e tudo que você precisa para treinar com estilo, conforto e resultados.';
   if(el('cfgHeroBadges'))el('cfgHeroBadges').value=(t.badges&&t.badges.length?t.badges:['👕 Roupas Fitness','💊 Suplementos','🏋️ Equipamentos','🚚 Entrega Rápida']).join(', ');
   // Stats
   const statsVal=t.stats&&t.stats.length?t.stats:[{num:'500+',label:'Clientes Ativos'},{num:'100+',label:'Produtos'},{num:'5★',label:'Avaliação'},{num:'2x',label:'Entrega Expressa'}];
